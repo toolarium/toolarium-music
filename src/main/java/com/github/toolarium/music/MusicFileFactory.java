@@ -59,20 +59,52 @@ public final class MusicFileFactory {
      *
      * @param path the path to the file
      * @return the parsed score
-     * @throws IOException in case of an I/O error
+     * @throws IOException in case of an I/O error or unsupported format
      */
     public IScore read(Path path) throws IOException {
-        MusicFileFormat format = MusicFileFormat.fromFileName(path.getFileName().toString());
+        if (path == null) {
+            throw new IOException("Path must not be null.");
+        }
+
+        MusicFileFormat format;
+        try {
+            format = MusicFileFormat.fromFileName(path.getFileName().toString());
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Cannot detect music file format: " + path.getFileName(), e);
+        }
+
+        return read(path, format);
+    }
+
+
+    /**
+     * Reads a score from a file using the specified format.
+     *
+     * @param path the path to the file
+     * @param format the format of the input data
+     * @return the parsed score
+     * @throws IOException in case of an I/O error or unsupported format
+     */
+    public IScore read(Path path, MusicFileFormat format) throws IOException {
+        if (path == null) {
+            throw new IOException("Path must not be null.");
+        }
+        if (format == null) {
+            throw new IOException("Format must not be null.");
+        }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Reading score from path: {}, detected format: {}", path, format);
+            LOG.debug("Reading score from path: {}, format: {}", path, format);
         }
 
         try {
             if (MusicFileFormat.MXL == format) {
                 return MXLIOFactory.getInstance().getReader().read(path);
+            } else if (MusicFileFormat.MUSIC_XML == format) {
+                return MusicXMLIOFactory.getInstance().getReader().read(path);
+            } else {
+                throw new IOException("Reading format " + format + " as IScore is not supported.");
             }
-            return MusicXMLIOFactory.getInstance().getReader().read(path);
         } catch (IOException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Failed to read score from path: {}", path, e);
@@ -88,9 +120,16 @@ public final class MusicFileFactory {
      * @param inputStream the input stream to read from
      * @param format the format of the input data
      * @return the parsed score
-     * @throws IOException in case of an I/O error
+     * @throws IOException in case of an I/O error or unsupported format
      */
     public IScore read(InputStream inputStream, MusicFileFormat format) throws IOException {
+        if (inputStream == null) {
+            throw new IOException("Input stream must not be null.");
+        }
+        if (format == null) {
+            throw new IOException("Format must not be null.");
+        }
+
         if (LOG.isDebugEnabled()) {
             LOG.debug("Reading score from input stream, format: {}", format);
         }
@@ -98,8 +137,11 @@ public final class MusicFileFactory {
         try {
             if (MusicFileFormat.MXL == format) {
                 return MXLIOFactory.getInstance().getReader().read(inputStream);
+            } else if (MusicFileFormat.MUSIC_XML == format) {
+                return MusicXMLIOFactory.getInstance().getReader().read(inputStream);
+            } else {
+                throw new IOException("Reading format " + format + " as IScore is not supported.");
             }
-            return MusicXMLIOFactory.getInstance().getReader().read(inputStream);
         } catch (IOException e) {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Failed to read score: {}", e.getMessage(), e);
@@ -114,20 +156,57 @@ public final class MusicFileFactory {
      *
      * @param score the score to write
      * @param path the path to write to
-     * @throws IOException in case of an I/O error
+     * @throws IOException in case of an I/O error or unsupported format
      */
     public void write(IScore score, Path path) throws IOException {
-        MusicFileFormat format = MusicFileFormat.fromFileName(path.getFileName().toString());
+        if (score == null) {
+            throw new IOException("Score must not be null.");
+        }
+        if (path == null) {
+            throw new IOException("Path must not be null.");
+        }
+
+        MusicFileFormat format;
+        try {
+            format = MusicFileFormat.fromFileName(path.getFileName().toString());
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Cannot detect music file format: " + path.getFileName(), e);
+        }
+
+        write(score, path, format);
+    }
+
+
+    /**
+     * Writes a score to a file in the specified format.
+     *
+     * @param score the score to write
+     * @param path the path to write to
+     * @param format the output format
+     * @throws IOException in case of an I/O error or unsupported format
+     */
+    public void write(IScore score, Path path, MusicFileFormat format) throws IOException {
+        if (score == null) {
+            throw new IOException("Score must not be null.");
+        }
+        if (path == null) {
+            throw new IOException("Path must not be null.");
+        }
+        if (format == null) {
+            throw new IOException("Format must not be null.");
+        }
 
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Writing score to path: {}, detected format: {}", path, format);
+            LOG.debug("Writing score to path: {}, format: {}", path, format);
         }
 
         try {
             if (MusicFileFormat.MXL == format) {
                 MXLIOFactory.getInstance().getWriter().write(score, path);
-            } else {
+            } else if (MusicFileFormat.MUSIC_XML == format) {
                 MusicXMLIOFactory.getInstance().getWriter().write(score, path);
+            } else {
+                throw new IOException("Writing format " + format + " is not supported.");
             }
         } catch (IOException e) {
             if (LOG.isDebugEnabled()) {
@@ -144,10 +223,20 @@ public final class MusicFileFactory {
      * @param score the score to write
      * @param outputStream the output stream to write to
      * @param format the output format
-     * @throws IOException in case of an I/O error
+     * @throws IOException in case of an I/O error or unsupported format
      */
     public void write(IScore score, OutputStream outputStream, MusicFileFormat format)
             throws IOException {
+        if (score == null) {
+            throw new IOException("Score must not be null.");
+        }
+        if (outputStream == null) {
+            throw new IOException("Output stream must not be null.");
+        }
+        if (format == null) {
+            throw new IOException("Format must not be null.");
+        }
+
         if (LOG.isDebugEnabled()) {
             LOG.debug("Writing score to output stream, format: {}", format);
         }
@@ -155,8 +244,10 @@ public final class MusicFileFactory {
         try {
             if (MusicFileFormat.MXL == format) {
                 MXLIOFactory.getInstance().getWriter().write(score, outputStream);
-            } else {
+            } else if (MusicFileFormat.MUSIC_XML == format) {
                 MusicXMLIOFactory.getInstance().getWriter().write(score, outputStream);
+            } else {
+                throw new IOException("Writing format " + format + " is not supported.");
             }
         } catch (IOException e) {
             if (LOG.isDebugEnabled()) {

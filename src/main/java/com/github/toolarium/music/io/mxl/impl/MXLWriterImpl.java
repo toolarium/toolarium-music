@@ -8,7 +8,6 @@ package com.github.toolarium.music.io.mxl.impl;
 import com.github.toolarium.music.io.IMusicWriter;
 import com.github.toolarium.music.io.musicxml.impl.MusicXMLWriterImpl;
 import com.github.toolarium.music.model.score.IScore;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -63,6 +62,7 @@ public class MXLWriterImpl implements IMusicWriter {
 
     /**
      * Write a score to an MXL output stream.
+     * Streams the MusicXML content directly into the ZIP entry to avoid double-buffering.
      *
      * @param score the score to write
      * @param outputStream the output stream to write to
@@ -70,26 +70,6 @@ public class MXLWriterImpl implements IMusicWriter {
      */
     @Override
     public void write(IScore score, OutputStream outputStream) throws IOException {
-        ByteArrayOutputStream xmlBaos = new ByteArrayOutputStream();
-        musicXmlWriter.write(score, xmlBaos);
-        byte[] xmlBytes = xmlBaos.toByteArray();
-
-        writeMxlArchive(xmlBytes, outputStream);
-
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("Successfully wrote score to MXL archive.");
-        }
-    }
-
-
-    /**
-     * Write the MXL ZIP archive containing mimetype, container.xml and the MusicXML content.
-     *
-     * @param xmlBytes the serialized MusicXML content
-     * @param outputStream the output stream to write the ZIP archive to
-     * @throws IOException in case of write errors
-     */
-    private void writeMxlArchive(byte[] xmlBytes, OutputStream outputStream) throws IOException {
         String containerXml = buildContainerXml(ROOT_FILE_NAME);
         byte[] containerBytes = containerXml.getBytes(StandardCharsets.UTF_8);
         byte[] mimetypeBytes = MIMETYPE_CONTENT.getBytes(StandardCharsets.US_ASCII);
@@ -112,10 +92,14 @@ public class MXLWriterImpl implements IMusicWriter {
             zos.write(containerBytes);
             zos.closeEntry();
 
-            // score.musicxml
+            // score.musicxml (streamed directly into the ZIP entry)
             zos.putNextEntry(new ZipEntry(ROOT_FILE_NAME));
-            zos.write(xmlBytes);
+            musicXmlWriter.write(score, zos);
             zos.closeEntry();
+        }
+
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("Successfully wrote score to MXL archive.");
         }
     }
 

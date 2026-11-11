@@ -34,6 +34,9 @@ import org.w3c.dom.NodeList;
 public class MXLReaderImpl implements IMusicReader {
 
     private static final Logger LOG = LoggerFactory.getLogger(MXLReaderImpl.class);
+    private static final long MAX_ENTRY_SIZE = 100L * 1024 * 1024;
+    private static final long MAX_TOTAL_SIZE = 200L * 1024 * 1024;
+    private static final int MAX_ENTRY_COUNT = 500;
     private final IMusicReader musicXmlReader = new MusicXMLReaderImpl();
 
 
@@ -98,11 +101,22 @@ public class MXLReaderImpl implements IMusicReader {
      */
     private Map<String, byte[]> bufferZipEntries(InputStream inputStream) throws IOException {
         Map<String, byte[]> entries = new LinkedHashMap<>();
+        long totalSize = 0;
 
         try (ZipInputStream zis = new ZipInputStream(inputStream)) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
-                entries.put(entry.getName(), readAllBytes(zis));
+                if (entries.size() >= MAX_ENTRY_COUNT) {
+                    throw new IOException("MXL archive exceeds maximum entry count (" + MAX_ENTRY_COUNT + ").");
+                }
+
+                byte[] data = readBounded(zis);
+                totalSize += data.length;
+                if (totalSize > MAX_TOTAL_SIZE) {
+                    throw new IOException("MXL archive exceeds maximum total decompressed size.");
+                }
+
+                entries.put(entry.getName(), data);
                 zis.closeEntry();
             }
         }
@@ -153,6 +167,9 @@ public class MXLReaderImpl implements IMusicReader {
     private String parseContainerXml(byte[] containerData) throws IOException {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
             Document document = factory.newDocumentBuilder().parse(new ByteArrayInputStream(containerData));
             NodeList rootFiles = document.getElementsByTagName("rootfile");
 
@@ -175,17 +192,22 @@ public class MXLReaderImpl implements IMusicReader {
 
 
     /**
-     * Read all bytes from a ZipInputStream without closing it.
+     * Read all bytes from a ZipInputStream without closing it, enforcing a size limit.
      *
      * @param zis the zip input stream to read from
      * @return the bytes read from the current entry
-     * @throws IOException in case of read errors
+     * @throws IOException in case of read errors or if the entry exceeds the size limit
      */
-    private byte[] readAllBytes(ZipInputStream zis) throws IOException {
+    private byte[] readBounded(ZipInputStream zis) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         byte[] buffer = new byte[4096];
+        long total = 0;
         int bytesRead;
         while ((bytesRead = zis.read(buffer)) != -1) {
+            total += bytesRead;
+            if (total > MAX_ENTRY_SIZE) {
+                throw new IOException("ZIP entry exceeds maximum allowed size (" + MAX_ENTRY_SIZE + " bytes).");
+            }
             baos.write(buffer, 0, bytesRead);
         }
 

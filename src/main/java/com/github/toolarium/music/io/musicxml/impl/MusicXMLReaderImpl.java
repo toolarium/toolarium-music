@@ -96,6 +96,7 @@ public class MusicXMLReaderImpl implements IMusicReader {
     /**
      * Strip the DOCTYPE declaration from the input stream content.
      * MusicXML files typically contain a DOCTYPE declaration that Jackson XML cannot handle.
+     * Handles both simple DOCTYPE and those with internal DTD subsets (bracket blocks).
      *
      * @param inputStream the input stream to read from
      * @return the content bytes with the DOCTYPE declaration removed
@@ -104,7 +105,31 @@ public class MusicXMLReaderImpl implements IMusicReader {
     private byte[] stripDoctype(InputStream inputStream) throws IOException {
         byte[] bytes = inputStream.readAllBytes();
         String content = new String(bytes, StandardCharsets.UTF_8);
-        content = content.replaceAll("<!DOCTYPE[^>]*>", "");
-        return content.getBytes(StandardCharsets.UTF_8);
+
+        int doctypeStart = content.indexOf("<!DOCTYPE");
+        if (doctypeStart < 0) {
+            return bytes;
+        }
+
+        int bracketDepth = 0;
+        int doctypeEnd = -1;
+        for (int i = doctypeStart; i < content.length(); i++) {
+            char c = content.charAt(i);
+            if (c == '[') {
+                bracketDepth++;
+            } else if (c == ']') {
+                bracketDepth--;
+            } else if (c == '>' && bracketDepth == 0) {
+                doctypeEnd = i + 1;
+                break;
+            }
+        }
+
+        if (doctypeEnd < 0) {
+            return bytes;
+        }
+
+        String cleaned = content.substring(0, doctypeStart) + content.substring(doctypeEnd);
+        return cleaned.getBytes(StandardCharsets.UTF_8);
     }
 }

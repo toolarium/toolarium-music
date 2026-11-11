@@ -5,6 +5,7 @@
  */
 package com.github.toolarium.music.io.musicxml.impl;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
@@ -32,6 +33,7 @@ public class MusicXMLWriterImpl implements IMusicWriter {
         XML_MAPPER = new XmlMapper();
         XML_MAPPER.configure(SerializationFeature.INDENT_OUTPUT, true);
         XML_MAPPER.configure(ToXmlGenerator.Feature.WRITE_XML_DECLARATION, true);
+        XML_MAPPER.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
     }
 
 
