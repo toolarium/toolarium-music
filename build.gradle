@@ -1,8 +1,7 @@
 /*
  * build.gradle
  *
- * Copyright by toolarium-musicxml, all rights reserved.
- * MIT License: https://mit-license.org
+ * Copyright by toolarium, all rights reserved.
  */
 apply from: "https://raw.githubusercontent.com/toolarium/common-gradle-build/master/gradle/common.gradle"
 
@@ -11,13 +10,11 @@ apply from: "https://raw.githubusercontent.com/toolarium/common-gradle-build/mas
  * Define project dependencies
  ************************************************************************************************************************/
 dependencies {
-    // see https://docs.gradle.org/current/userguide/java_library_plugin.html
-
-    // utilities
-    //implementation "net.sf.jptools:jptools:${commonGradleJptoolsVersion}"
-    //implementation "net.sf.jptools:jptools:${commonGradleJptoolsVersion}:slf4j-redirect"
-
     // logging
     implementation "org.slf4j:slf4j-api:${commonGradleSlf4jApiVersion}"
     testRuntimeOnly "ch.qos.logback:logback-classic:${commonGradleLogbackVersion}"
+
+    // jackson xml
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.18.2"
+    implementation "com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations:2.18.2"
 }

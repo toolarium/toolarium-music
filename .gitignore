@@ -67,3 +67,13 @@ nb-configuration.xml
 # vi swap files
 *.swp
 *.swo
+
+# Claude Code instructions (not committed)
+CLAUDE.md
+
+# Test sample data
+src/test/resources/samples/quintet/
+
+# Disallowed checked-in files (auto-cleaned by common-gradle-build)
+.classpath
+.project
