@@ -17,14 +17,17 @@ import com.github.toolarium.music.io.IMusicWriter;
 public final class MXLIOFactory {
 
     /**
-     * Singleton holder.
+     * Private class, the only instance of the singelton which will be created by accessing the holder class.
+     *
+     * @author patrick
      */
     private static final class HOLDER {
         static final MXLIOFactory INSTANCE = new MXLIOFactory();
     }
 
+
     /**
-     * Private constructor.
+     * Constructor.
      */
     private MXLIOFactory() {
         // private
@@ -32,9 +35,9 @@ public final class MXLIOFactory {
 
 
     /**
-     * Gets the singleton instance.
+     * Get the instance.
      *
-     * @return the factory instance
+     * @return the instance
      */
     public static MXLIOFactory getInstance() {
         return HOLDER.INSTANCE;

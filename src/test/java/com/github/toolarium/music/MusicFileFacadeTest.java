@@ -16,7 +16,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,7 @@ import org.slf4j.LoggerFactory;
  */
 public class MusicFileFacadeTest {
     private static final Logger LOG = LoggerFactory.getLogger(MusicFileFacadeTest.class);
-    private static final Path SAMPLES_DIR = Paths.get("src/test/resources/samples");
+    private static final Path SAMPLES_DIR = TestResourceUtil.getInstance().getSamplesDir();
 
     /**
      * Tests reading a .musicxml file via the factory.
@@ -39,10 +38,7 @@ public class MusicFileFacadeTest {
     @Test
     void testReadMusicXmlViaFactory() throws IOException {
         Path sampleFile = SAMPLES_DIR.resolve("sample-score-partwise.musicxml");
-        if (!Files.exists(sampleFile)) {
-            LOG.info("Sample .musicxml file not found, skipping test.");
-            return;
-        }
+        assertTrue(Files.exists(sampleFile), "Sample file not found under samples directory: sample-score-partwise.musicxml");
 
         IScore score = MusicFileFactory.getInstance().read(sampleFile);
 
@@ -62,11 +58,8 @@ public class MusicFileFacadeTest {
      */
     @Test
     void testReadMxlViaFactory() throws IOException {
-        Path mxlFile = findFirstMxl();
-        if (mxlFile == null) {
-            LOG.info("No .mxl sample files found, skipping test.");
-            return;
-        }
+        Path mxlFile = TestResourceUtil.getInstance().findFirstFileByExtension(".mxl");
+        assertNotNull(mxlFile, "No .mxl sample files found under samples directory.");
 
         IScore score = MusicFileFactory.getInstance().read(mxlFile);
 
@@ -162,23 +155,4 @@ public class MusicFileFacadeTest {
     }
 
 
-    /**
-     * Finds the first .mxl file in the samples directory.
-     *
-     * @return the path, or null if not found
-     * @throws IOException if an I/O error occurs
-     */
-    private Path findFirstMxl() throws IOException {
-        if (!Files.exists(SAMPLES_DIR)) {
-            return null;
-        }
-
-        try (java.util.stream.Stream<Path> paths = Files.walk(SAMPLES_DIR)) {
-            return paths
-                    .filter(Files::isRegularFile)
-                    .filter(p -> p.getFileName().toString().toLowerCase().endsWith(".mxl"))
-                    .findFirst()
-                    .orElse(null);
-        }
-    }
 }

@@ -5,6 +5,7 @@
  */
 package com.github.toolarium.music;
 
+import com.github.toolarium.music.io.midi.MidiIOFactory;
 import com.github.toolarium.music.io.musicxml.impl.MusicXMLIOFactory;
 import com.github.toolarium.music.io.mxl.impl.MXLIOFactory;
 import com.github.toolarium.music.model.score.IScore;
@@ -28,7 +29,9 @@ public final class MusicFileFactory {
 
 
     /**
-     * Singleton holder.
+     * Private class, the only instance of the singelton which will be created by accessing the holder class.
+     *
+     * @author patrick
      */
     private static final class HOLDER {
         static final MusicFileFactory INSTANCE = new MusicFileFactory();
@@ -36,7 +39,7 @@ public final class MusicFileFactory {
 
 
     /**
-     * Private constructor.
+     * Constructor.
      */
     private MusicFileFactory() {
         // private
@@ -44,9 +47,9 @@ public final class MusicFileFactory {
 
 
     /**
-     * Gets the singleton instance of the factory.
+     * Get the instance.
      *
-     * @return the factory instance
+     * @return the instance
      */
     public static MusicFileFactory getInstance() {
         return HOLDER.INSTANCE;
@@ -66,11 +69,16 @@ public final class MusicFileFactory {
             throw new IOException("Path must not be null.");
         }
 
+        Path fileName = path.getFileName();
+        if (fileName == null) {
+            throw new IOException("Cannot detect music file format: path has no file name component.");
+        }
+
         MusicFileFormat format;
         try {
-            format = MusicFileFormat.fromFileName(path.getFileName().toString());
+            format = MusicFileFormat.fromFileName(fileName.toString());
         } catch (IllegalArgumentException e) {
-            throw new IOException("Cannot detect music file format: " + path.getFileName(), e);
+            throw new IOException("Cannot detect music file format: " + fileName, e);
         }
 
         return read(path, format);
@@ -102,6 +110,8 @@ public final class MusicFileFactory {
                 return MXLIOFactory.getInstance().getReader().read(path);
             } else if (MusicFileFormat.MUSIC_XML == format) {
                 return MusicXMLIOFactory.getInstance().getReader().read(path);
+            } else if (MusicFileFormat.MIDI == format) {
+                return MidiIOFactory.getInstance().getReader().read(path);
             } else {
                 throw new IOException("Reading format " + format + " as IScore is not supported.");
             }
@@ -139,6 +149,8 @@ public final class MusicFileFactory {
                 return MXLIOFactory.getInstance().getReader().read(inputStream);
             } else if (MusicFileFormat.MUSIC_XML == format) {
                 return MusicXMLIOFactory.getInstance().getReader().read(inputStream);
+            } else if (MusicFileFormat.MIDI == format) {
+                return MidiIOFactory.getInstance().getReader().read(inputStream);
             } else {
                 throw new IOException("Reading format " + format + " as IScore is not supported.");
             }
@@ -166,11 +178,16 @@ public final class MusicFileFactory {
             throw new IOException("Path must not be null.");
         }
 
+        Path fileName = path.getFileName();
+        if (fileName == null) {
+            throw new IOException("Cannot detect music file format: path has no file name component.");
+        }
+
         MusicFileFormat format;
         try {
-            format = MusicFileFormat.fromFileName(path.getFileName().toString());
+            format = MusicFileFormat.fromFileName(fileName.toString());
         } catch (IllegalArgumentException e) {
-            throw new IOException("Cannot detect music file format: " + path.getFileName(), e);
+            throw new IOException("Cannot detect music file format: " + fileName, e);
         }
 
         write(score, path, format);
@@ -205,6 +222,8 @@ public final class MusicFileFactory {
                 MXLIOFactory.getInstance().getWriter().write(score, path);
             } else if (MusicFileFormat.MUSIC_XML == format) {
                 MusicXMLIOFactory.getInstance().getWriter().write(score, path);
+            } else if (MusicFileFormat.MIDI == format) {
+                MidiIOFactory.getInstance().getWriter().write(score, path);
             } else {
                 throw new IOException("Writing format " + format + " is not supported.");
             }
@@ -246,6 +265,8 @@ public final class MusicFileFactory {
                 MXLIOFactory.getInstance().getWriter().write(score, outputStream);
             } else if (MusicFileFormat.MUSIC_XML == format) {
                 MusicXMLIOFactory.getInstance().getWriter().write(score, outputStream);
+            } else if (MusicFileFormat.MIDI == format) {
+                MidiIOFactory.getInstance().getWriter().write(score, outputStream);
             } else {
                 throw new IOException("Writing format " + format + " is not supported.");
             }

@@ -7,12 +7,21 @@ apply from: "https://raw.githubusercontent.com/toolarium/common-gradle-build/mas
 
 
 /************************************************************************************************************************
+ * Allow additional root-level files not in the common-gradle-build default whitelist
+ ************************************************************************************************************************/
+addCommonGradlePropertyList("allowedMainFiles", "$rootDirectory/ARCHITECTURE.md")
+
+
+/************************************************************************************************************************
  * Define project dependencies
  ************************************************************************************************************************/
 dependencies {
     // logging
     implementation "org.slf4j:slf4j-api:${commonGradleSlf4jApiVersion}"
     testRuntimeOnly "ch.qos.logback:logback-classic:${commonGradleLogbackVersion}"
+
+    // toolarium common utilities
+    testImplementation "com.github.toolarium:toolarium-common:1.2.1"
 
     // jackson xml
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.18.2"

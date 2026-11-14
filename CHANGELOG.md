@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MusicXML 4.0 reader and writer (plain `.musicxml` format).
 - MXL reader and writer (compressed `.mxl` ZIP archives).
 - Finale `.musx` and `.mus` container reader with metadata extraction.
+- MIDI reader and writer (`.mid`, `.midi` files) using JDK `javax.sound.midi`.
 - `MusicFileFactory` singleton facade with auto-detection by file extension.
 - `MusicFileFormat` enum supporting MUSIC_XML, MXL, FINALE, and MIDI formats.
 - `IMusicReader` and `IMusicWriter` interfaces for format-specific I/O.

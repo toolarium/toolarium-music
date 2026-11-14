@@ -69,6 +69,8 @@ public class MXLReaderImpl implements IMusicReader {
 
     /**
      * Read a score from an MXL input stream.
+     * Optimized to stop buffering entries once the root file path is known from container.xml,
+     * and to skip reading non-matching entries entirely.
      *
      * @param inputStream the input stream containing the MXL data
      * @return the parsed score
@@ -76,10 +78,73 @@ public class MXLReaderImpl implements IMusicReader {
      */
     @Override
     public IScore read(InputStream inputStream) throws IOException {
-        Map<String, byte[]> entries = bufferZipEntries(inputStream);
-        String rootPath = findRootFilePath(entries);
+        String rootPath = null;
+        Map<String, byte[]> bufferedEntries = new LinkedHashMap<>();
+        long totalSize = 0;
+        int entryCount = 0;
 
-        byte[] musicXmlData = entries.get(rootPath);
+        try (ZipInputStream zis = new ZipInputStream(inputStream)) {
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                entryCount++;
+                if (entryCount > MAX_ENTRY_COUNT) {
+                    throw new IOException("MXL archive exceeds maximum entry count (" + MAX_ENTRY_COUNT + ").");
+                }
+
+                String name = entry.getName();
+
+                if ("META-INF/container.xml".equals(name)) {
+                    rootPath = parseContainerXml(readBounded(zis));
+                    if (rootPath != null && bufferedEntries.containsKey(rootPath)) {
+                        if (LOG.isDebugEnabled()) {
+                            LOG.debug("Found root MusicXML file in MXL archive: {}", rootPath);
+                        }
+                        return musicXmlReader.read(new ByteArrayInputStream(bufferedEntries.get(rootPath)));
+                    }
+                    zis.closeEntry();
+                    continue;
+                }
+
+                if (rootPath != null && !name.equals(rootPath)) {
+                    zis.closeEntry();
+                    continue;
+                }
+
+                byte[] data = readBounded(zis);
+                totalSize += data.length;
+                if (totalSize > MAX_TOTAL_SIZE) {
+                    throw new IOException("MXL archive exceeds maximum total decompressed size.");
+                }
+
+                if (rootPath != null) {
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Found root MusicXML file in MXL archive: {}", rootPath);
+                    }
+                    return musicXmlReader.read(new ByteArrayInputStream(data));
+                }
+
+                bufferedEntries.put(name, data);
+                zis.closeEntry();
+            }
+        }
+
+        if (rootPath == null) {
+            for (String name : bufferedEntries.keySet()) {
+                if (name.endsWith(".musicxml") || (name.endsWith(".xml") && !"META-INF/container.xml".equals(name))) {
+                    rootPath = name;
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("No container.xml found, falling back to entry: {}", name);
+                    }
+                    break;
+                }
+            }
+        }
+
+        if (rootPath == null) {
+            throw new IOException("No root MusicXML file found in MXL archive.");
+        }
+
+        byte[] musicXmlData = bufferedEntries.get(rootPath);
         if (musicXmlData == null) {
             throw new IOException("Root MusicXML file not found in MXL archive: " + rootPath);
         }
@@ -89,71 +154,6 @@ public class MXLReaderImpl implements IMusicReader {
         }
 
         return musicXmlReader.read(new ByteArrayInputStream(musicXmlData));
-    }
-
-
-    /**
-     * Buffer all ZIP entries from the input stream into a map.
-     *
-     * @param inputStream the input stream containing the ZIP data
-     * @return a map of entry names to their byte content
-     * @throws IOException in case of read errors
-     */
-    private Map<String, byte[]> bufferZipEntries(InputStream inputStream) throws IOException {
-        Map<String, byte[]> entries = new LinkedHashMap<>();
-        long totalSize = 0;
-
-        try (ZipInputStream zis = new ZipInputStream(inputStream)) {
-            ZipEntry entry;
-            while ((entry = zis.getNextEntry()) != null) {
-                if (entries.size() >= MAX_ENTRY_COUNT) {
-                    throw new IOException("MXL archive exceeds maximum entry count (" + MAX_ENTRY_COUNT + ").");
-                }
-
-                byte[] data = readBounded(zis);
-                totalSize += data.length;
-                if (totalSize > MAX_TOTAL_SIZE) {
-                    throw new IOException("MXL archive exceeds maximum total decompressed size.");
-                }
-
-                entries.put(entry.getName(), data);
-                zis.closeEntry();
-            }
-        }
-
-        return entries;
-    }
-
-
-    /**
-     * Find the root MusicXML file path from the buffered ZIP entries.
-     * First tries to parse META-INF/container.xml; falls back to the first .musicxml or .xml entry.
-     *
-     * @param entries the buffered ZIP entries
-     * @return the root file path
-     * @throws IOException if no root file can be determined
-     */
-    private String findRootFilePath(Map<String, byte[]> entries) throws IOException {
-        byte[] containerData = entries.get("META-INF/container.xml");
-        if (containerData != null) {
-            String rootFilePath = parseContainerXml(containerData);
-            if (rootFilePath != null && !rootFilePath.isEmpty()) {
-                return rootFilePath;
-            }
-        }
-
-        // Fallback: find first .musicxml or .xml entry
-        for (String name : entries.keySet()) {
-            if (name.endsWith(".musicxml") || (name.endsWith(".xml") && !name.equals("META-INF/container.xml"))) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug("No container.xml found, falling back to entry: {}", name);
-                }
-
-                return name;
-            }
-        }
-
-        throw new IOException("No root MusicXML file found in MXL archive.");
     }
 
 

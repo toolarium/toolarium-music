@@ -6,9 +6,11 @@
 package com.github.toolarium.music.io;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.github.toolarium.music.TestResourceUtil;
 import com.github.toolarium.music.io.musicxml.impl.MusicXMLIOFactory;
 import com.github.toolarium.music.model.score.IScore;
 import com.github.toolarium.music.model.score.impl.ScoreImpl;
@@ -17,8 +19,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.stream.Stream;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 public class MusicXMLReaderWriterTest {
     private static final Logger LOG = LoggerFactory.getLogger(MusicXMLReaderWriterTest.class);
-    private static final Path SAMPLES_DIR = Paths.get("src/test/resources/samples");
+    private static final Path SAMPLES_DIR = TestResourceUtil.getInstance().getSamplesDir();
 
     /**
      * Tests reading a MusicXML file and verifying basic structure.
@@ -41,10 +42,7 @@ public class MusicXMLReaderWriterTest {
     @Test
     void testReadMusicXML() throws IOException {
         Path sampleFile = SAMPLES_DIR.resolve("sample-score-partwise.musicxml");
-        if (!Files.exists(sampleFile)) {
-            LOG.info("Sample MusicXML file not found, skipping test.");
-            return;
-        }
+        assertTrue(Files.exists(sampleFile), "Sample file not found under samples directory: sample-score-partwise.musicxml");
 
         IMusicReader reader = MusicXMLIOFactory.getInstance().getReader();
         IScore score = reader.read(sampleFile);
@@ -71,10 +69,7 @@ public class MusicXMLReaderWriterTest {
     @Test
     void testReadIdentification() throws IOException {
         Path sampleFile = SAMPLES_DIR.resolve("sample-score-partwise.musicxml");
-        if (!Files.exists(sampleFile)) {
-            LOG.info("Sample MusicXML file not found, skipping test.");
-            return;
-        }
+        assertTrue(Files.exists(sampleFile), "Sample file not found under samples directory: sample-score-partwise.musicxml");
 
         IMusicReader reader = MusicXMLIOFactory.getInstance().getReader();
         IScore score = reader.read(sampleFile);
@@ -98,10 +93,7 @@ public class MusicXMLReaderWriterTest {
     @Test
     void testReadPartList() throws IOException {
         Path sampleFile = SAMPLES_DIR.resolve("sample-score-partwise.musicxml");
-        if (!Files.exists(sampleFile)) {
-            LOG.info("Sample MusicXML file not found, skipping test.");
-            return;
-        }
+        assertTrue(Files.exists(sampleFile), "Sample file not found under samples directory: sample-score-partwise.musicxml");
 
         IMusicReader reader = MusicXMLIOFactory.getInstance().getReader();
         IScore score = reader.read(sampleFile);
@@ -126,10 +118,7 @@ public class MusicXMLReaderWriterTest {
     @Test
     void testWriteAndReadBack() throws IOException {
         Path sampleFile = SAMPLES_DIR.resolve("sample-score-partwise.musicxml");
-        if (!Files.exists(sampleFile)) {
-            LOG.info("Sample MusicXML file not found, skipping test.");
-            return;
-        }
+        assertTrue(Files.exists(sampleFile), "Sample file not found under samples directory: sample-score-partwise.musicxml");
 
         IMusicReader reader = MusicXMLIOFactory.getInstance().getReader();
         IMusicWriter writer = MusicXMLIOFactory.getInstance().getWriter();
@@ -194,20 +183,16 @@ public class MusicXMLReaderWriterTest {
      */
     @Test
     void testReadAllMusicXMLFiles() throws IOException {
-        if (!Files.exists(SAMPLES_DIR)) {
-            LOG.info("Samples directory not found, skipping test.");
-            return;
-        }
+        List<Path> xmlFiles = TestResourceUtil.getInstance().findFilesByExtension(".musicxml");
+        assertFalse(xmlFiles.isEmpty(), "No .musicxml sample files found under samples directory.");
 
         IMusicReader reader = MusicXMLIOFactory.getInstance().getReader();
         int count = 0;
 
-        try (Stream<Path> paths = Files.walk(SAMPLES_DIR)) {
-            for (Path path : (Iterable<Path>) paths.filter(p -> p.toString().endsWith(".musicxml"))::iterator) {
-                IScore score = reader.read(path);
-                assertNotNull(score);
-                count++;
-            }
+        for (Path path : xmlFiles) {
+            IScore score = reader.read(path);
+            assertNotNull(score);
+            count++;
         }
 
         LOG.info("Successfully read {} .musicxml files.", count);

@@ -12,7 +12,7 @@ and supports reading and writing multiple file formats:
 | MusicXML | `.musicxml`, `.xml` | Yes | Yes |
 | Compressed MXL | `.mxl` | Yes | Yes |
 | Finale | `.musx`, `.mus` | Yes (container + metadata) | No |
-| MIDI | `.mid`, `.midi` | Planned | Planned |
+| MIDI | `.mid`, `.midi` | Yes | Yes |
 
 The model is format-agnostic. Regardless of the input format, data is loaded into the same
 `IScore` model. The library handles format detection and conversion transparently.
@@ -22,6 +22,7 @@ The model is format-agnostic. Regardless of the input format, data is loaded int
 
 - Complete Java model for musical scores (notes, measures, parts, dynamics, harmony, layout)
 - Read and write MusicXML 4.0 and compressed MXL archives
+- Read and write Standard MIDI Files (Type 0 and Type 1) using JDK `javax.sound.midi`
 - Read Finale `.musx` (ZIP container) and `.mus` (Enigma binary) files
 - Interface-first API: all public types are interfaces, implementations are pluggable
 - Jackson XML serialization (lightweight, no JAXB/Glassfish/MOXy dependency)
@@ -61,6 +62,21 @@ IScore score = reader.read(Path.of("score.musicxml"));
 
 IMusicWriter writer = MusicXMLIOFactory.getInstance().getWriter();
 writer.write(score, Path.of("output.musicxml"));
+```
+
+### Reading and writing MIDI files
+
+```java
+// Via the facade (auto-detects by extension)
+IScore score = MusicFileFactory.getInstance().read(Path.of("song.mid"));
+MusicFileFactory.getInstance().write(score, Path.of("output.mid"));
+
+// Or use the MIDI factory directly
+IMusicReader reader = MidiIOFactory.getInstance().getReader();
+IScore score = reader.read(Path.of("song.mid"));
+
+IMusicWriter writer = MidiIOFactory.getInstance().getWriter();
+writer.write(score, Path.of("output.mid"));
 ```
 
 ### Reading a Finale file
@@ -506,6 +522,7 @@ com.github.toolarium.music
     |-- IMusicReader, IMusicWriter
     |-- musicxml/impl/  (MusicXMLIOFactory, MusicXMLReaderImpl, MusicXMLWriterImpl)
     |-- mxl/impl/       (MXLIOFactory, MXLReaderImpl, MXLWriterImpl)
+    |-- midi/            (MidiIOFactory, MidiReaderImpl, MidiWriterImpl, converters)
     +-- finale/          (FinaleContainerFactory, IFinaleContainer, ...)
 ```
 
@@ -545,9 +562,9 @@ The library brings `jackson-dataformat-xml` and `slf4j-api` as transitive depend
 
 ## Documentation
 
-- [Architecture](docs/ARCHITECTURE.md): design decisions, package structure, implementation phases
+- [Architecture](ARCHITECTURE.md): design decisions, package structure, implementation phases
 - [Model Reference](docs/MODEL.md): complete list of all model interfaces and their fields
-- [Finale Format](docs/FINALE-MUSX-FORMAT.md): reverse-engineered Finale .musx/.mus format documentation
+- [Finale Format](docs/finale-musx-format.md): reverse-engineered Finale .musx/.mus format documentation
 
 
 ## Built With
