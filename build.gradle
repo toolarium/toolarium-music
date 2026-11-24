@@ -7,9 +7,20 @@ apply from: "https://raw.githubusercontent.com/toolarium/common-gradle-build/mas
 
 
 /************************************************************************************************************************
- * Allow additional root-level files not in the common-gradle-build default whitelist
+ * CLI source set: contains ToolariumMusic and its picocli dependency.
+ * It compiles on top of the main output so it can reference the library classes,
+ * but picocli is NOT added to the main configuration and therefore does NOT appear
+ * in the published library POM.
  ************************************************************************************************************************/
-addCommonGradlePropertyList("allowedMainFiles", "$rootDirectory/ARCHITECTURE.md")
+sourceSets {
+    cli {
+        java {
+            srcDirs = ["src/cli/java"]
+        }
+        compileClasspath += sourceSets.main.output + configurations.compileClasspath
+        runtimeClasspath += sourceSets.main.output + configurations.runtimeClasspath
+    }
+}
 
 
 /************************************************************************************************************************
@@ -24,6 +35,10 @@ dependencies {
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.18.2"
     implementation "com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations:2.18.2"
 
+    // command-line argument parsing and logging (cli source set only; not part of the library's public API)
+    cliImplementation "info.picocli:picocli:4.7.6"
+    cliRuntimeOnly "ch.qos.logback:logback-classic:${commonGradleLogbackVersion}"
+
     // toolarium common utilities
     testImplementation "com.github.toolarium:toolarium-common:1.2.1"
 
@@ -35,12 +50,37 @@ dependencies {
 
 
 /************************************************************************************************************************
+ * Fat executable JAR (classifier: cli).
+ * Bundles all runtime dependencies together with the library and the CLI entry point
+ * so the tool can be launched with: java -jar toolarium-music-X.Y.Z-cli.jar [options] FILE|DIR...
+ ************************************************************************************************************************/
+tasks.register("cliJar", Jar) {
+    group = "build"
+    description = "Assembles the fat executable JAR with all runtime dependencies bundled."
+    archiveClassifier.set("cli")
+    manifest {
+        attributes "Main-Class": "com.github.toolarium.music.ToolariumMusic"
+    }
+    from sourceSets.main.output
+    from sourceSets.cli.output
+    from sourceSets.cli.runtimeClasspath.filter { it.isFile() }.collect { zipTree(it) }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+assemble.dependsOn cliJar
+
+
+/************************************************************************************************************************
  * Checkstyle: the music sample files in the test resources are test input, not source code (some are larger than
  * the checkstyle heap allows)
  ************************************************************************************************************************/
 tasks.withType(Checkstyle).configureEach {
     exclude "**/samples/**"
 }
+
+// checkstyleCli is auto-created by the Checkstyle plugin when the cli source set is defined.
+// Wire it into the build so it runs alongside checkstyleMain.
+check.dependsOn tasks.named("checkstyleCli")
 
 
 /************************************************************************************************************************

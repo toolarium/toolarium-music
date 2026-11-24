@@ -17,18 +17,18 @@ and how feasible it would be to support them in toolarium-music.
 
 | Format | Extension | Read | Write | Notes |
 |--------|-----------|------|-------|-------|
-| MusicXML | `.musicxml`, `.xml` | Yes | Yes | Open interchange standard (W3C community group), see [musicxml-format.md](musicxml-format.md) |
-| MXL | `.mxl` | Yes | Yes | Compressed MusicXML (ZIP with `META-INF/container.xml`), see [musicxml-format.md](musicxml-format.md) |
-| MuseScore | `.mscz`, `.mscx` | Yes | Yes | ZIP with XML. Reads all file versions (1.x to 4.x), writes the MuseScore 4 format. See [musescore-format.md](musescore-format.md) |
-| MIDI | `.mid`, `.midi` | Yes | Yes | Standard MIDI File, see [midi-format.md](midi-format.md) |
-| Finale | `.musx`, `.mus` | Yes | No | ZIP container with encrypted EnigmaXML, see [finale-musx-format.md](finale-musx-format.md) |
-| Dorico | `.dorico` | Yes | No | ZIP with a binary tree, all flows with notes and notation (tuplets, grace notes, dynamics, articulations, lyrics, repeats). No pickup bars yet. See [dorico-format.md](dorico-format.md) |
-| Sibelius | `.sib`, `.sco`, `.si7` | Yes | No | Encrypted binary container with zlib compression. Decrypts, decompresses, extracts metadata, instruments, notes with pitches and durations, ties, slurs, tuplets, articulations, fermatas, dynamics, hairpins, texts, tempo, and lyrics. See [sibelius-sib-format.md](sibelius-sib-format.md) |
-| Guitar Pro | `.gp`, `.gpx`, `.gp5`, `.gp4`, `.gp3` | Yes | No | All versions from Guitar Pro 3 to 8: binary GP3 to GP5, GP6 BCFZ container and GP7/8 ZIP with GPIF XML. Tracks, tuning, string and fret, drums, voices, tuplets, ties, hammer-ons, slides, harmonics, dynamics, chord names, lyrics, markers, tempo, repeats and endings. See [guitarpro-format.md](guitarpro-format.md) |
-| capella | `.capx`, `.cap` | Yes | No | `.capx`: ZIP with CapXML; `.cap`: legacy binary format (capella 2000 to 2008), decoded, see [capella-format.md](capella-format.md) |
-| MEI | `.mei` | Yes | Yes | Read MEI 3, 4 and 5, write MEI 5 (common music notation with control events), see [mei-format.md](mei-format.md) |
-| ABC notation | `.abc` | Yes | Yes | ABC 2.1, first tune of a file; writes one tune with all voices, see [abc-format.md](abc-format.md) |
-| LilyPond | `.ly`, `.ily` | Yes | Yes | Own parser, first score of a file; Scheme is not evaluated. Writes LilyPond 2.24 source that LilyPond 2.26 compiles, see [lilypond-format.md](lilypond-format.md) |
+| ABC notation | `.abc` | ✓ | ✓ | ABC 2.1, first tune of a file; writes one tune with all voices, see [abc-format.md](abc-format.md) |
+| capella | `.capx`, `.cap` | ✓ |  | `.capx`: ZIP with CapXML; `.cap`: legacy binary format (capella 2000 to 2008), decoded, see [capella-format.md](capella-format.md) |
+| Dorico | `.dorico` | ✓ |  | ZIP with a binary tree, all flows with notes and notation (tuplets, grace notes, dynamics, articulations, lyrics, repeats). No pickup bars yet. See [dorico-format.md](dorico-format.md) |
+| Finale | `.musx`, `.mus` | ✓ |  | ZIP container with encrypted EnigmaXML, see [finale-musx-format.md](finale-musx-format.md) |
+| Guitar Pro | `.gp`, `.gpx`, `.gp5`, `.gp4`, `.gp3` | ✓ |  | All versions from Guitar Pro 3 to 8: binary GP3 to GP5, GP6 BCFZ container and GP7/8 ZIP with GPIF XML. Tracks, tuning, string and fret, drums, voices, tuplets, ties, hammer-ons, slides, harmonics, dynamics, chord names, lyrics, markers, tempo, repeats and endings. See [guitarpro-format.md](guitarpro-format.md) |
+| LilyPond | `.ly`, `.ily` | ✓ | ✓ | Own parser, first score of a file; Scheme is not evaluated. Writes LilyPond 2.24 source that LilyPond 2.26 compiles, see [lilypond-format.md](lilypond-format.md) |
+| MEI | `.mei` | ✓ | ✓ | Read MEI 3, 4 and 5, write MEI 5 (common music notation with control events), see [mei-format.md](mei-format.md) |
+| MIDI | `.mid`, `.midi` | ✓ | ✓ | Standard MIDI File, see [midi-format.md](midi-format.md) |
+| MuseScore | `.mscz`, `.mscx` | ✓ | ✓ | ZIP with XML. Reads all file versions (1.x to 4.x), writes the MuseScore 4 format. See [musescore-format.md](musescore-format.md) |
+| MusicXML | `.musicxml`, `.xml` | ✓ | ✓ | Open interchange standard (W3C community group), see [musicxml-format.md](musicxml-format.md) |
+| MXL | `.mxl` | ✓ | ✓ | Compressed MusicXML (ZIP with `META-INF/container.xml`), see [musicxml-format.md](musicxml-format.md) |
+| Sibelius | `.sib`, `.sco`, `.si7` | ✓ |  | Encrypted binary container with zlib compression. Decrypts, decompresses, extracts metadata, instruments, notes with pitches and durations, ties, slurs, tuplets, articulations, fermatas, dynamics, hairpins, texts, tempo, and lyrics. See [sibelius-sib-format.md](sibelius-sib-format.md) |
 
 
 ## Tier 1: Major, Actively Developed Tools

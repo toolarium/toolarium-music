@@ -8,24 +8,43 @@ subpackages with `Impl` suffix.
 For the full architecture, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 
-## Score Structure
-
-The model uses a single `IScore` interface as the root. A score contains parts,
-each part contains measures, and each measure contains notes, directions, barlines, etc.
+## Element hierarchy
 
 ```
 IScore
-  +-- version: String (e.g., "4.0")
-  +-- work: IWork
-  +-- movementNumber: String
-  +-- movementTitle: String
-  +-- identification: IIdentification
-  +-- defaults: IDefaults
-  +-- credits: List<ICredit>
-  +-- partList: IPartList
-  +-- parts: List<IPart>
-        +-- id: String
-        +-- measures: List<IMeasure>
+|-- version : String
+|-- IWork (workNumber, workTitle)
+|-- movementNumber : String
+|-- movementTitle : String
+|-- IIdentification (creators, rights, encoding, source)
+|-- IDefaults (IScaling, IPageLayout, ISystemLayout, IStaffLayout)
+|-- List<ICredit> (page, creditType, creditWords)
+|-- IPartList
+|   |-- List<IPartGroup> (type, number, groupName, groupSymbol, groupBarline)
+|   +-- List<IScorePart> (id, partName, scoreInstruments, midiInstruments)
++-- List<IPart>
+    +-- List<IMeasure> (number, width)
+        |-- List<IAttributes>
+        |   |-- divisions : Integer
+        |   |-- List<IKey> (fifths, mode)
+        |   |-- List<ITime> (beats, beatType)
+        |   +-- List<IClef> (sign, line, clefOctaveChange)
+        |-- List<INote>
+        |   |-- IPitch (step, alter, octave)
+        |   |-- IRest / IUnpitched
+        |   |-- duration, voice, type, stem, accidental
+        |   |-- List<ITie>, List<IBeam>, List<ILyric>
+        |   +-- INotations
+        |       |-- List<ITied>, List<ISlur>, List<ITuplet>
+        |       |-- IArticulations, IDynamics, IOrnaments, IPlayingTechnique
+        |       +-- List<IFermata>, List<IGlissando>
+        |-- List<IDirection>
+        |   |-- List<IDirectionType> (IWords, IWedge, IMetronome, IPedal, IOctaveShift)
+        |   +-- ISound (tempo, dynamics, dacapo, segno, coda, fine)
+        |-- List<IBarline> (barStyle, IRepeat, IEnding, segno, coda)
+        |-- List<IHarmony> (IRoot, kind, IBass, List<IDegree>, IFrame)
+        |-- List<IForward>, List<IBackup> (multi-voice navigation)
+        +-- List<IPrint> (page/system layout overrides)
 ```
 
 
@@ -45,6 +64,24 @@ Score-level metadata and the root document type.
 | `ICredit` | Page credit text (title, composer, etc.) | page, creditType, creditWords |
 | `ICreditWords` | Formatted text in a credit | value, defaultX, defaultY, fontSize, justify, valign |
 
+```java
+IScore score = MusicFileFactory.getInstance().read(Path.of("song.gp5"));
+
+String title = score.getMovementTitle();
+IWork work = score.getWork();
+if (work != null) {
+    String workTitle = work.getWorkTitle();
+}
+
+IIdentification id = score.getIdentification();
+if (id != null) {
+    for (ICreator creator : id.getCreators()) {
+        // creator.getType()  = "composer", "lyricist", ...
+        // creator.getValue() = "Johann Sebastian Bach"
+    }
+}
+```
+
 
 ## Package: model/part
 
@@ -59,6 +96,19 @@ Instrument and part definitions.
 | `IMidiDevice` | MIDI device assignment | id, port, value |
 | `IMidiInstrument` | MIDI playback configuration | id, midiChannel, midiProgram, volume, pan |
 
+```java
+IPartList partList = score.getPartList();
+for (IScorePart scorePart : partList.getScoreParts()) {
+    String partName = scorePart.getPartName();   // "Piano", "Violin I"
+    String partId   = scorePart.getId();          // "P1", "P2"
+
+    for (IMidiInstrument midi : scorePart.getMidiInstruments()) {
+        Integer program = midi.getMidiProgram();  // General MIDI program number
+        Integer channel = midi.getMidiChannel();
+    }
+}
+```
+
 
 ## Package: model/measure
 
@@ -66,7 +116,7 @@ Measure structure, attributes, and navigation.
 
 | Interface | Description | Key Fields |
 |-----------|-------------|------------|
-| `IMeasure` | A single measure in a part | number, width, implicit, musicData (the content in document order), and the typed views attributes, notes, forwards, backups, directions, barlines, harmonies, prints, sounds |
+| `IMeasure` | A single measure in a part | number, width, implicit, musicData (content in document order), and typed views: attributes, notes, forwards, backups, directions, barlines, harmonies, prints, sounds |
 | `IPart` | A part containing measures | id, measures |
 | `IAttributes` | Key, time, clef changes | divisions, keys, times, staves, clefs, transposes, staffDetails |
 | `IKey` | Key signature | fifths, mode, cancel |
@@ -92,6 +142,29 @@ document order (empty if the measure has none). `MeasureImpl.setMusicData()` and
 the content in order; a typed setter replaces the elements of its type at the position of the first one
 (attributes and print elements without a previous one are inserted at the start, all others at the end).
 
+```java
+for (IPart part : score.getParts()) {
+    for (IMeasure measure : part.getMeasures()) {
+        for (IAttributes attr : measure.getAttributes()) {
+            Integer divisions = attr.getDivisions();
+
+            for (IKey key : attr.getKeys()) {
+                Integer fifths = key.getFifths();  // 0=C, 1=G, -1=F, ...
+                String  mode   = key.getMode();     // "major", "minor"
+            }
+            for (ITime time : attr.getTimes()) {
+                String beats    = time.getBeats();    // "4"
+                String beatType = time.getBeatType(); // "4"
+            }
+            for (IClef clef : attr.getClefs()) {
+                String  sign = clef.getSign();  // "G", "F", "C"
+                Integer line = clef.getLine();  // 2 for treble, 4 for bass
+            }
+        }
+    }
+}
+```
+
 
 ## Package: model/note
 
@@ -107,6 +180,31 @@ Note, pitch, rest, and related types.
 | `ITimeModification` | Tuplet ratio | actualNotes, normalNotes, normalType |
 | `IBeam` | Beam grouping | number, value (begin, continue, end) |
 | `ILyric` | Lyrics attached to a note | number, name, syllabic, text, elision, extend |
+
+```java
+for (INote note : measure.getNotes()) {
+    if (note.getRest() != null) {
+        continue; // rest
+    }
+
+    IPitch pitch = note.getPitch();
+    if (pitch != null) {
+        String  step   = pitch.getStep();   // "C", "D", "E", ...
+        Integer octave = pitch.getOctave(); // 4 = middle C octave
+        Double  alter  = pitch.getAlter();  // 1.0 = sharp, -1.0 = flat
+    }
+
+    Integer duration = note.getDuration(); // in divisions
+    String  type     = note.getType();     // "quarter", "eighth", "half", ...
+    Integer voice    = note.getVoice();    // voice number for multi-voice
+    boolean isChord  = note.getChord() != null; // true for stacked chord notes
+
+    for (ILyric lyric : note.getLyrics()) {
+        String syllabic = lyric.getSyllabic(); // "single", "begin", "middle", "end"
+        String text     = lyric.getText();
+    }
+}
+```
 
 
 ## Package: model/notation
@@ -126,6 +224,25 @@ Articulations, dynamics, ornaments, and other note-level markings.
 | `IPlayingTechnique` | Performance technique marks | upBow, downBow, harmonic, fingering, pluck, fret, string, hammerOn, pullOff, etc. |
 | `IGlissando` | Glissando line | type, number, lineType, value |
 
+```java
+INotations notations = note.getNotations();
+if (notations != null) {
+    for (ISlur slur : notations.getSlurs()) {
+        String type = slur.getType(); // "start", "stop"
+    }
+
+    IArticulations art = notations.getArticulations();
+    if (art != null) {
+        String staccato = art.getStaccato(); // non-null = staccato present
+    }
+
+    IDynamics dyn = notations.getDynamics();
+    if (dyn != null) {
+        String marking = dyn.getDynamicMarking(); // "f", "pp", "mf", ...
+    }
+}
+```
+
 
 ## Package: model/direction
 
@@ -142,6 +259,34 @@ Measure-level directions: tempo, dynamics, pedal, rehearsal marks.
 | `IWords` | Text expression | value, defaultX, defaultY, fontSize, fontWeight, fontStyle |
 | `ISound` | Playback parameters and navigation | tempo, dynamics, dacapo, segno, dalsegno, coda, tocoda, fine |
 
+```java
+for (IDirection direction : measure.getDirections()) {
+    ISound sound = direction.getSound();
+    if (sound != null) {
+        String tempo    = sound.getTempo();    // BPM as string, e.g., "120"
+        String dynamics = sound.getDynamics(); // MIDI velocity
+    }
+
+    for (IDirectionType dt : direction.getDirectionTypes()) {
+        IMetronome metro = dt.getMetronome();
+        if (metro != null) {
+            String beatUnit = metro.getBeatUnit();  // "quarter", "half"
+            String bpm      = metro.getPerMinute(); // "120"
+        }
+
+        IWedge wedge = dt.getWedge();
+        if (wedge != null) {
+            String type = wedge.getType(); // "crescendo", "diminuendo", "stop"
+        }
+
+        IWords words = dt.getWords();
+        if (words != null) {
+            String text = words.getText(); // "dolce", "rit.", etc.
+        }
+    }
+}
+```
+
 
 ## Package: model/barline
 
@@ -152,6 +297,23 @@ Barline styles, repeats, and endings.
 | `IBarline` | Barline at measure boundary | location, barStyle, repeat, ending, fermata, segno, coda |
 | `IRepeat` | Repeat barline | direction (forward, backward), times, winged |
 | `IEnding` | Volta bracket (1st/2nd ending) | number, type (start, stop, discontinue), value |
+
+```java
+for (IBarline barline : measure.getBarlines()) {
+    String style = barline.getBarStyle(); // "light-heavy", "heavy-light", etc.
+
+    IRepeat repeat = barline.getRepeat();
+    if (repeat != null) {
+        String dir = repeat.getDirection(); // "forward" or "backward"
+    }
+
+    IEnding ending = barline.getEnding();
+    if (ending != null) {
+        String number = ending.getNumber(); // "1", "2", etc.
+        String type   = ending.getType();   // "start", "stop", "discontinue"
+    }
+}
+```
 
 
 ## Package: model/harmony
@@ -165,6 +327,20 @@ Chord symbols and analysis.
 | `IBass` | Bass note (for slash chords) | bassStep, bassAlter |
 | `IDegree` | Chord degree alteration | degreeValue, degreeAlter, degreeType |
 | `IFrame` | Guitar chord diagram | frameStrings, frameFrets |
+
+```java
+for (IHarmony harmony : measure.getHarmonies()) {
+    IRoot  root = harmony.getRoot();
+    String step  = root.getRootStep();  // "C", "D", etc.
+    Double alter = root.getRootAlter(); // 1.0 = sharp
+    String kind  = harmony.getKind();   // "major", "minor", "dominant", etc.
+
+    IBass bass = harmony.getBass();
+    if (bass != null) {
+        String bassNote = bass.getBassStep(); // slash chord: C/E
+    }
+}
+```
 
 
 ## Package: model/layout
@@ -207,3 +383,62 @@ Shared enums and marker interfaces.
 | `GroupSymbolValue` | none, brace, line, bracket, square |
 | `GroupBarlineValue` | yes, no, Mensurstrich |
 | `PlacementValue` | above, below |
+
+
+## Package structure
+
+```
+com.github.toolarium.music
+|-- MusicFileFactory               <- singleton facade (read/write with auto-detection)
+|-- MusicFileFormat                <- supported file formats enum
+|-- model/
+|   |-- score/
+|   |   |-- IScore, IWork, IIdentification, ICreator, ICredit, ...
+|   |   +-- impl/  (ScoreImpl, WorkImpl, IdentificationImpl, ...)
+|   |-- part/
+|   |   |-- IPartList, IScorePart, IPartGroup, IScoreInstrument, ...
+|   |   +-- impl/  (PartListImpl, ScorePartImpl, ...)
+|   |-- measure/
+|   |   |-- IMeasure, IPart, IAttributes, IKey, ITime, IClef, ...
+|   |   +-- impl/  (MeasureImpl, PartImpl, AttributesImpl, ...)
+|   |-- note/
+|   |   |-- INote, IPitch, IRest, ITie, IBeam, ILyric, ...
+|   |   +-- impl/  (NoteImpl, PitchImpl, RestImpl, ...)
+|   |-- notation/
+|   |   |-- INotations, ISlur, ITuplet, IArticulations, IDynamics, ...
+|   |   +-- impl/  (NotationsImpl, SlurImpl, TupletImpl, ...)
+|   |-- direction/
+|   |   |-- IDirection, IDirectionType, ISound, IWords, IMetronome, ...
+|   |   +-- impl/  (DirectionImpl, SoundImpl, MetronomeImpl, ...)
+|   |-- barline/
+|   |   |-- IBarline, IRepeat, IEnding
+|   |   +-- impl/  (BarlineImpl, RepeatImpl, EndingImpl)
+|   |-- harmony/
+|   |   |-- IHarmony, IRoot, IBass, IDegree, IFrame
+|   |   +-- impl/  (HarmonyImpl, RootImpl, BassImpl, ...)
+|   |-- layout/
+|   |   |-- IPageLayout, ISystemLayout, IStaffLayout, ...
+|   |   +-- impl/  (PageLayoutImpl, SystemLayoutImpl, ...)
+|   +-- common/
+|       |-- IMusicDataElement       <- marker interface for measure content
+|       +-- enums (NoteTypeValue, ClefSign, BarStyleValue, ...)
++-- io/
+    |-- IMusicReader, IMusicWriter
+    |-- dto/              (ScoreData, PartData, MeasureData, VoiceData, EventData, NoteData, Fraction, ...)
+    |-- converter/        (ScoreBuilder, NoteValueConverter, PitchSpeller, ChordSymbolParser, DynamicsConverter)
+    |-- stream/           (StreamContentReader, ZipContentReader)
+    |-- xml/              (XmlDocumentReader)
+    +-- format/
+        |-- abc/          (AbcIOFactory; impl/ AbcReaderImpl, AbcTuneParser, AbcWriterImpl, dto/)
+        |-- capella/      (CapellaIOFactory; impl/ CapellaReaderImpl, CapxScoreParser, CapBinaryReader, dto/)
+        |-- dorico/       (DoricoIOFactory; impl/ DoricoReaderImpl, DoricoTreeDecoder, converters)
+        |-- finale/       (FinaleIOFactory, FinaleContainerFactory; impl/ FinaleReaderImpl, EnigmaXmlDecryptor, ...)
+        |-- guitarpro/    (GuitarProIOFactory; impl/ GpBinaryReader, GpxContainerReader, GpifReader, dto/)
+        |-- lilypond/     (LilyPondIOFactory; impl/ LilyPondReaderImpl, LilyPondTokenizer, LilyPondParser, LilyPondWriterImpl, dto/)
+        |-- mei/          (MeiIOFactory; impl/ MeiReaderImpl, MeiBodyParser, MeiWriterImpl, dto/)
+        |-- midi/         (MidiIOFactory; impl/ MidiReaderImpl, MidiWriterImpl, converters)
+        |-- musescore/    (MuseScoreIOFactory; impl/ MuseScoreReader, MuseScoreWriter, converters)
+        |-- musicxml/impl/ (MusicXMLIOFactory, MusicXMLReaderImpl, MusicXMLWriterImpl)
+        |-- mxl/impl/     (MXLIOFactory, MXLReaderImpl, MXLWriterImpl)
+        +-- sibelius/     (SibeliusIOFactory; impl/ SibeliusCipher, SibeliusContainerReader, SibeliusReaderImpl)
+```

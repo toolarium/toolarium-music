@@ -7,14 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [ 0.9.0 ] - 2026-11-24
 ### Added
+- `ToolariumMusic` command-line entry point: reads one or more files or directories and converts them to a target format in parallel, using all available CPU cores. Accepts `--format` (`-f`, default: `mxl`) and `--output` (`-o`, default: current directory) options, plus `--help` and `--version`.
+- `ScoreBuilder` fluent builder API (`com.github.toolarium.music.model.builder`): creates an `IScore` programmatically without reading a file. Nested `PartBuilder`, `MeasureBuilder` and `NoteBuilder` cover metadata (title, composer, work title), key and time signatures, clefs, pitched notes with optional accidentals and augmentation dots, rests, and multi-voice or chord notes.
+
+
 - MuseScore `.mscz` and `.mscx` reading (versions 1.x to 4.x) and writing (MuseScore 4 format), including the title page, the header and footer of the pages, the instruments, fingerings and cue-size notes.
-- MuseScore format documentation in `docs/musescore-format.md`.
+- MuseScore format documentation in `docs/formats/musescore-format.md`.
 - Full Finale `.musx` and `.mus` score reading with conversion to `IScore`.
-- Finale format documentation in `docs/finale-musx-format.md`.
+- Finale format documentation in `docs/formats/finale-musx-format.md`.
 - Dorico `.dorico` project reading with notes and notation of all flows, including pick-up bars; parts are in the order of the full score.
-- Dorico format documentation in `docs/dorico-format.md`.
+- Dorico format documentation in `docs/formats/dorico-format.md`.
 - Sibelius `.sib`, `.sco`, and `.si7` reading for all Sibelius versions (1 to 2025) and Scorch files: metadata, instruments, notes with pitches and durations, ties, slurs, tuplets, articulations, fermatas, dynamics, hairpins, texts, tempo, and lyrics.
-- Sibelius format documentation in `docs/sibelius-sib-format.md`.
+- Sibelius format documentation in `docs/formats/sibelius-sib-format.md`.
 - Guitar Pro reading: `.gp3`, `.gp4`, `.gp5`, `.gpx` (Guitar Pro 6) and `.gp` (Guitar Pro 7 and 8).
 - capella reading: `.capx` (CapXML) and the legacy binary `.cap` format.
 - MEI `.mei` reading (MEI 3, 4 and 5) and writing (MEI 5, valid against the MEI 5.0 schema).

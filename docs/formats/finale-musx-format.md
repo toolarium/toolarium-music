@@ -116,17 +116,17 @@ After gunzip decompression, the result is an XML document beginning with:
 
 | Data | Source | Available |
 |------|--------|-----------|
-| File format detection | ZIP mimetype | Yes |
-| Container version | container.xml | Yes |
-| Key signature, tempo, duration | NotationMetadata.xml | Yes |
-| Creator application string | NotationMetadata.xml | Yes |
-| AudioUnit presets | presets/*.preset | Yes |
-| Notes, rests, pitches, durations | score.dat (EnigmaXML) | **Yes** |
-| Lyrics, expressions, dynamics | score.dat (EnigmaXML) | **Yes** |
-| Articulations, slurs, ties | score.dat (EnigmaXML) | **Yes** |
-| Staff/instrument definitions | score.dat (EnigmaXML) | **Yes** |
-| Page layout, system breaks | score.dat (EnigmaXML) | **Yes** |
-| Repeats, endings, barlines | score.dat (EnigmaXML) | **Yes** |
+| File format detection | ZIP mimetype | ✓ |
+| Container version | container.xml | ✓ |
+| Key signature, tempo, duration | NotationMetadata.xml | ✓ |
+| Creator application string | NotationMetadata.xml | ✓ |
+| AudioUnit presets | presets/*.preset | ✓ |
+| Notes, rests, pitches, durations | score.dat (EnigmaXML) | ✓ |
+| Lyrics, expressions, dynamics | score.dat (EnigmaXML) | ✓ |
+| Articulations, slurs, ties | score.dat (EnigmaXML) | ✓ |
+| Staff/instrument definitions | score.dat (EnigmaXML) | ✓ |
+| Page layout, system breaks | score.dat (EnigmaXML) | ✓ |
+| Repeats, endings, barlines | score.dat (EnigmaXML) | ✓ |
 
 
 ## EnigmaXML Structure
