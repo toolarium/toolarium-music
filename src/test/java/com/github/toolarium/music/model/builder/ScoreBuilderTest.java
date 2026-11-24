@@ -31,6 +31,13 @@ import org.junit.jupiter.api.Test;
  */
 public class ScoreBuilderTest {
 
+    private static final String BEATS_4 = "4";
+    private static final String KEY_MAJOR = "major";
+    private static final String NOTE_E = "E";
+    private static final String NOTE_F = "F";
+    private static final String NOTE_G = "G";
+    private static final String TYPE_QUARTER = "quarter";
+
     /**
      * Builds a score with one part and one measure and verifies metadata, attributes and notes.
      */
@@ -41,13 +48,13 @@ public class ScoreBuilderTest {
                 .composer("Ludwig van Beethoven")
                 .part("Violin")
                     .measure(1)
-                        .time("4", "4")
-                        .key(0, "major")
-                        .clef("G", 2)
-                        .note("E", 4, "quarter")
-                        .note("E", 4, "quarter")
-                        .note("F", 4, "quarter")
-                        .note("G", 4, "quarter")
+                        .time(BEATS_4, BEATS_4)
+                        .key(0, KEY_MAJOR)
+                        .clef(NOTE_G, 2)
+                        .note(NOTE_E, 4, TYPE_QUARTER)
+                        .note(NOTE_E, 4, TYPE_QUARTER)
+                        .note(NOTE_F, 4, TYPE_QUARTER)
+                        .note(NOTE_G, 4, TYPE_QUARTER)
                     .end()
                 .end()
                 .build();
@@ -77,20 +84,20 @@ public class ScoreBuilderTest {
         assertEquals(1, attrs.size());
         assertEquals(MeasureBuilder.DIVISIONS, attrs.get(0).getDivisions().intValue());
         assertEquals(0, attrs.get(0).getKeys().get(0).getFifths().intValue());
-        assertEquals("major", attrs.get(0).getKeys().get(0).getMode());
-        assertEquals("4", attrs.get(0).getTimes().get(0).getBeats());
-        assertEquals("4", attrs.get(0).getTimes().get(0).getBeatType());
-        assertEquals("G", attrs.get(0).getClefs().get(0).getSign());
+        assertEquals(KEY_MAJOR, attrs.get(0).getKeys().get(0).getMode());
+        assertEquals(BEATS_4, attrs.get(0).getTimes().get(0).getBeats());
+        assertEquals(BEATS_4, attrs.get(0).getTimes().get(0).getBeatType());
+        assertEquals(NOTE_G, attrs.get(0).getClefs().get(0).getSign());
         assertEquals(2, attrs.get(0).getClefs().get(0).getLine().intValue());
 
         List<? extends INote> notes = measure.getNotes();
         assertEquals(4, notes.size());
-        assertEquals("E", notes.get(0).getPitch().getStep());
+        assertEquals(NOTE_E, notes.get(0).getPitch().getStep());
         assertEquals(4, notes.get(0).getPitch().getOctave().intValue());
-        assertEquals("quarter", notes.get(0).getType());
+        assertEquals(TYPE_QUARTER, notes.get(0).getType());
         assertEquals(MeasureBuilder.DIVISIONS, notes.get(0).getDuration().intValue());
-        assertEquals("F", notes.get(2).getPitch().getStep());
-        assertEquals("G", notes.get(3).getPitch().getStep());
+        assertEquals(NOTE_F, notes.get(2).getPitch().getStep());
+        assertEquals(NOTE_G, notes.get(3).getPitch().getStep());
     }
 
 
@@ -102,11 +109,11 @@ public class ScoreBuilderTest {
         IScore score = ScoreBuilder.builder()
                 .part("Piano")
                     .measure(1)
-                        .time("4", "4")
-                        .key(0, "major")
-                        .clef("G", 2)
-                        .note("F", 4, 1.0, "eighth")
-                        .note("G", 4, "eighth", 1)
+                        .time(BEATS_4, BEATS_4)
+                        .key(0, KEY_MAJOR)
+                        .clef(NOTE_G, 2)
+                        .note(NOTE_F, 4, 1.0, "eighth")
+                        .note(NOTE_G, 4, "eighth", 1)
                         .rest("quarter")
                     .end()
                 .end()
@@ -116,14 +123,14 @@ public class ScoreBuilderTest {
         List<? extends INote> notes = measure.getNotes();
         assertEquals(3, notes.size());
 
-        INote fSharp = notes.get(0);
-        assertEquals("F", fSharp.getPitch().getStep());
-        assertEquals(1.0, fSharp.getPitch().getAlter().doubleValue(), 0.001);
-        assertEquals("eighth", fSharp.getType());
-        assertEquals(MeasureBuilder.DIVISIONS / 2, fSharp.getDuration().intValue());
+        INote fsharp = notes.get(0);
+        assertEquals(NOTE_F, fsharp.getPitch().getStep());
+        assertEquals(1.0, fsharp.getPitch().getAlter().doubleValue(), 0.001);
+        assertEquals("eighth", fsharp.getType());
+        assertEquals(MeasureBuilder.DIVISIONS / 2, fsharp.getDuration().intValue());
 
         INote dottedG = notes.get(1);
-        assertEquals("G", dottedG.getPitch().getStep());
+        assertEquals(NOTE_G, dottedG.getPitch().getStep());
         assertNull(dottedG.getPitch().getAlter());
         assertEquals("eighth", dottedG.getType());
         int expectedDotted = MeasureBuilder.DIVISIONS / 2 + MeasureBuilder.DIVISIONS / 4;
@@ -148,20 +155,20 @@ public class ScoreBuilderTest {
                 .title("Test Score")
                 .part("Violin")
                     .measure(1)
-                        .time("4", "4").key(0, "major").clef("G", 2)
-                        .note("C", 5, "quarter")
-                        .note("D", 5, "quarter")
-                        .note("E", 5, "quarter")
-                        .note("F", 5, "quarter")
+                        .time(BEATS_4, BEATS_4).key(0, KEY_MAJOR).clef(NOTE_G, 2)
+                        .note("C", 5, TYPE_QUARTER)
+                        .note("D", 5, TYPE_QUARTER)
+                        .note(NOTE_E, 5, TYPE_QUARTER)
+                        .note(NOTE_F, 5, TYPE_QUARTER)
                     .end()
                     .measure(2)
-                        .note("G", 5, "half")
+                        .note(NOTE_G, 5, "half")
                         .rest("half")
                     .end()
                 .end()
                 .part("Cello")
                     .measure(1)
-                        .time("4", "4").key(0, "major").clef("F", 4)
+                        .time(BEATS_4, BEATS_4).key(0, KEY_MAJOR).clef(NOTE_F, 4)
                         .note("C", 3, "whole")
                     .end()
                     .measure(2)
@@ -197,11 +204,11 @@ public class ScoreBuilderTest {
         IScore score = ScoreBuilder.builder()
                 .part("Piano")
                     .measure(1)
-                        .time("4", "4").key(0, "major").clef("G", 2)
-                        .beginNote("C", 4, "quarter").voice(1).end()
-                        .beginNote("E", 4, "quarter").voice(1).chord().end()
-                        .beginNote("G", 4, "quarter").voice(1).chord().end()
-                        .beginRest("quarter").voice(2).end()
+                        .time(BEATS_4, BEATS_4).key(0, KEY_MAJOR).clef(NOTE_G, 2)
+                        .beginNote("C", 4, TYPE_QUARTER).voice(1).end()
+                        .beginNote(NOTE_E, 4, TYPE_QUARTER).voice(1).chord().end()
+                        .beginNote(NOTE_G, 4, TYPE_QUARTER).voice(1).chord().end()
+                        .beginRest(TYPE_QUARTER).voice(2).end()
                     .end()
                 .end()
                 .build();
@@ -214,10 +221,10 @@ public class ScoreBuilderTest {
         assertNull(notes.get(0).getChord());
         assertEquals(1, notes.get(0).getVoice().intValue());
 
-        assertEquals("E", notes.get(1).getPitch().getStep());
+        assertEquals(NOTE_E, notes.get(1).getPitch().getStep());
         assertNotNull(notes.get(1).getChord());
 
-        assertEquals("G", notes.get(2).getPitch().getStep());
+        assertEquals(NOTE_G, notes.get(2).getPitch().getStep());
         assertNotNull(notes.get(2).getChord());
 
         assertNotNull(notes.get(3).getRest());
@@ -239,7 +246,7 @@ public class ScoreBuilderTest {
                 .arranger("Test Arranger")
                 .part("Voice")
                     .measure(1)
-                        .time("4", "4").key(0, "major").clef("G", 2)
+                        .time(BEATS_4, BEATS_4).key(0, KEY_MAJOR).clef(NOTE_G, 2)
                         .note("A", 4, "whole")
                     .end()
                 .end()

@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `ToolariumMusic` command-line entry point: reads one or more files or directories and converts them to a target format in parallel, using all available CPU cores. Accepts `--format` (`-f`, default: `mxl`) and `--output` (`-o`, default: current directory) options, plus `--help` and `--version`.
 - `ScoreBuilder` fluent builder API (`com.github.toolarium.music.model.builder`): creates an `IScore` programmatically without reading a file. Nested `PartBuilder`, `MeasureBuilder` and `NoteBuilder` cover metadata (title, composer, work title), key and time signatures, clefs, pitched notes with optional accidentals and augmentation dots, rests, and multi-voice or chord notes.
-
-
 - MuseScore `.mscz` and `.mscx` reading (versions 1.x to 4.x) and writing (MuseScore 4 format), including the title page, the header and footer of the pages, the instruments, fingerings and cue-size notes.
 - MuseScore format documentation in `docs/formats/musescore-format.md`.
 - Full Finale `.musx` and `.mus` score reading with conversion to `IScore`.

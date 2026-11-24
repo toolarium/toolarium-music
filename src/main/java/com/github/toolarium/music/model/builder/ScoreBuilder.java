@@ -40,7 +40,7 @@ import com.github.toolarium.music.model.score.impl.WorkImpl;
  *
  * @author patrick
  */
-public class ScoreBuilder {
+public final class ScoreBuilder {
 
     private final ScoreImpl score;
     private final PartListImpl partList;
