@@ -20,10 +20,65 @@ dependencies {
     implementation "org.slf4j:slf4j-api:${commonGradleSlf4jApiVersion}"
     testRuntimeOnly "ch.qos.logback:logback-classic:${commonGradleLogbackVersion}"
 
-    // toolarium common utilities
-    testImplementation "com.github.toolarium:toolarium-common:1.2.1"
-
     // jackson xml
     implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.18.2"
     implementation "com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations:2.18.2"
+
+    // toolarium common utilities
+    testImplementation "com.github.toolarium:toolarium-common:1.2.1"
+
+    // RELAX NG validation of the written MEI files (jing only, without its optional Saxon and Xerces dependencies)
+    testImplementation("org.relaxng:jing:20220510") {
+        transitive = false
+    }
+}
+
+
+/************************************************************************************************************************
+ * Checkstyle: the music sample files in the test resources are test input, not source code (some are larger than
+ * the checkstyle heap allows)
+ ************************************************************************************************************************/
+tasks.withType(Checkstyle).configureEach {
+    exclude "**/samples/**"
+}
+
+
+/************************************************************************************************************************
+ * Sources jar: the music sample files in the test resources and their description are not published
+ ************************************************************************************************************************/
+tasks.matching { it.name == "sourcesJar" }.configureEach {
+    exclude "**/samples/**"
+    exclude "**/test/resources/README.md"
+}
+
+
+/************************************************************************************************************************
+ * Test JVM configuration
+ ************************************************************************************************************************/
+test {
+    maxHeapSize = "2g"
+    jvmArgs '-XX:+UseG1GC'
+    systemProperty "toolarium.music.integrationTest", "false"
+    if (project.hasProperty("testThreads")) {
+        systemProperty "toolarium.music.testThreads", project.property("testThreads")
+    }
+}
+
+
+/************************************************************************************************************************
+ * Integration tests: the same tests on all samples, including the protected samples (src/test/resources/samples/_protected_)
+ ************************************************************************************************************************/
+tasks.register("integrationTest", Test) {
+    description = "Runs the tests on all samples, including the protected samples."
+    group = "verification"
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform()
+    maxHeapSize = "4g"
+    jvmArgs '-XX:+UseG1GC'
+    systemProperty "toolarium.music.integrationTest", "true"
+    if (project.hasProperty("testThreads")) {
+        systemProperty "toolarium.music.testThreads", project.property("testThreads")
+    }
+    shouldRunAfter test
 }

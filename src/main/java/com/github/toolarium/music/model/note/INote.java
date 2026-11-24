@@ -19,6 +19,14 @@ import java.util.List;
 public interface INote extends IMusicDataElement {
 
     /**
+     * Gets the grace note information. Grace notes have no duration.
+     *
+     * @return the grace information, or null if this is not a grace note
+     */
+    IGrace getGrace();
+
+
+    /**
      * Gets the pitch.
      *
      * @return the pitch
@@ -73,6 +81,14 @@ public interface INote extends IMusicDataElement {
      * @return the type
      */
     String getType();
+
+
+    /**
+     * Gets the size of the note type, for example cue for a small note.
+     *
+     * @return the size (full, cue, grace-cue or large), or null for the normal size
+     */
+    String getTypeSize();
 
     /**
      * Gets the dots.

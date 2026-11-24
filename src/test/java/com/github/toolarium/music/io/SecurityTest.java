@@ -7,9 +7,9 @@ package com.github.toolarium.music.io;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.github.toolarium.music.io.midi.MidiIOFactory;
-import com.github.toolarium.music.io.musicxml.impl.MusicXMLIOFactory;
-import com.github.toolarium.music.io.mxl.impl.MXLIOFactory;
+import com.github.toolarium.music.io.format.midi.MidiIOFactory;
+import com.github.toolarium.music.io.format.musicxml.impl.MusicXMLIOFactory;
+import com.github.toolarium.music.io.format.mxl.impl.MXLIOFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

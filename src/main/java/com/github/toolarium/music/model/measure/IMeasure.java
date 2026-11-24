@@ -7,6 +7,7 @@
 package com.github.toolarium.music.model.measure;
 
 import com.github.toolarium.music.model.barline.IBarline;
+import com.github.toolarium.music.model.common.IMusicDataElement;
 import com.github.toolarium.music.model.direction.IDirection;
 import com.github.toolarium.music.model.direction.ISound;
 import com.github.toolarium.music.model.harmony.IHarmony;
@@ -16,6 +17,10 @@ import java.util.List;
 
 /**
  * Defines the Measure interface.
+ *
+ * <p>The content of a measure is an ordered sequence ({@link #getMusicData()}): the order of notes,
+ * backups, forwards, directions and attributes defines the time position of each element. The
+ * typed getters return the elements of one type in document order.</p>
  *
  * @author patrick
  */
@@ -41,6 +46,14 @@ public interface IMeasure {
      * @return the implicit
      */
     String getImplicit();
+
+    /**
+     * Gets the content of the measure in document order (notes, backups, forwards, attributes,
+     * directions, harmonies, barlines, prints and sounds).
+     *
+     * @return the content of the measure, never null
+     */
+    List<? extends IMusicDataElement> getMusicData();
 
     /**
      * Gets the attributes.

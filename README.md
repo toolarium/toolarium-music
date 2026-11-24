@@ -1,5 +1,5 @@
 [![License](https://img.shields.io/github/license/toolarium/toolarium-music)](https://github.com/toolarium/toolarium-music/blob/master/LICENSE)
-[![Maven Central](https://img.shields.io/maven-central/v/com.github.toolarium/toolarium-music/0.8.0)](https://search.maven.org/artifact/com.github.toolarium/toolarium-music/0.8.0/jar)
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.toolarium/toolarium-music/0.9.0)](https://search.maven.org/artifact/com.github.toolarium/toolarium-music/0.9.0/jar)
 [![javadoc](https://javadoc.io/badge2/com.github.toolarium/toolarium-music/javadoc.svg)](https://javadoc.io/doc/com.github.toolarium/toolarium-music)
 
 # toolarium-music
@@ -7,12 +7,20 @@
 Java music model library that provides a unified in-memory representation of musical scores
 and supports reading and writing multiple file formats:
 
-| Format | Extension | Read | Write |
-|--------|-----------|------|-------|
-| MusicXML | `.musicxml`, `.xml` | Yes | Yes |
-| Compressed MXL | `.mxl` | Yes | Yes |
-| Finale | `.musx`, `.mus` | Yes (container + metadata) | No |
-| MIDI | `.mid`, `.midi` | Yes | Yes |
+| Format | Type | Extension | Read | Write |
+|--------|------|-----------|------|-------|
+| [ABC notation](https://abcnotation.com/wiki/abc:standard:v2.1) | Open standard | `.abc` | **Yes** | **Yes** |
+| [Capella](https://www.capella-software.com) | Commercial | `.capx`, `.cap` | **Yes** | <ins>No</ins> |
+| [Compressed MXL](https://github.com/w3c/musicxml) | Open standard | `.mxl` | **Yes** | **Yes** |
+| [Dorico](https://www.steinberg.net/dorico/) | Commercial | `.dorico` | **Yes** | <ins>No</ins> |
+| [Finale](https://www.finalemusic.com) | Commercial | `.musx`, `.mus` | **Yes** | <ins>No</ins> |
+| [Guitar Pro](https://www.guitar-pro.com) | Commercial | `.gp`, `.gpx`, `.gp5`, `.gp4`, `.gp3` | **Yes** | <ins>No</ins> |
+| [LilyPond](https://gitlab.com/lilypond/lilypond) | Open source | `.ly`, `.ily` | **Yes** | **Yes** |
+| [MEI](https://github.com/music-encoding/music-encoding) | Open standard | `.mei` | **Yes** | **Yes** |
+| [MIDI](https://midi.org/standard-midi-files-specification) | Open standard | `.mid`, `.midi` | **Yes** | **Yes** |
+| [MuseScore](https://github.com/musescore/MuseScore) | Open source | `.mscz`, `.mscx` | **Yes** | **Yes** |
+| [MusicXML](https://github.com/w3c/musicxml) | Open standard | `.musicxml`, `.xml` | **Yes** | **Yes** |
+| [Sibelius](https://www.avid.com/sibelius) | Commercial | `.sib`, `.sco`, `.si7` | **Yes** | <ins>No</ins> |
 
 The model is format-agnostic. Regardless of the input format, data is loaded into the same
 `IScore` model. The library handles format detection and conversion transparently.
@@ -21,74 +29,106 @@ The model is format-agnostic. Regardless of the input format, data is loaded int
 ## Features
 
 - Complete Java model for musical scores (notes, measures, parts, dynamics, harmony, layout)
-- Read and write MusicXML 4.0 and compressed MXL archives
-- Read and write Standard MIDI Files (Type 0 and Type 1) using JDK `javax.sound.midi`
-- Read Finale `.musx` (ZIP container) and `.mus` (Enigma binary) files
 - Interface-first API: all public types are interfaces, implementations are pluggable
-- Jackson XML serialization (lightweight, no JAXB/Glassfish/MOXy dependency)
 - Single `MusicFileFactory` entry point with auto-detection by file extension
+- Jackson XML serialization (lightweight, no JAXB/Glassfish/MOXy dependency)
+- Supported file formats:
+  - Read ABC notation `.abc` files (header fields, keys with modes, meters, tempo, notes, chords, rests, multi-measure rests, broken rhythm, tuplets, ties, slurs, grace notes, decorations, chord symbols, annotations, bar lines, repeats and endings, voices and voice overlays, `%%score` grouping into staves, lyrics)
+  - Read capella `.capx` and legacy binary `.cap` files (instruments, piano staves, clefs, keys, time signatures, automatic and explicit barlines, tuplets including tripartite tuplets, grace notes, ties, slurs, hairpins, voltas, articulations, lyrics, texts)
+  - Read Dorico `.dorico` projects (metadata, parts, staves, clefs and clef changes, transposition, key and time signatures, notes, chords, voices, rests, ties, slurs, tuplets, grace notes, dynamics, hairpins, articulations, ornaments, fermatas, lyrics, staff text, tempo, repeats and endings, all flows)
+  - Read Finale `.musx` files (decrypts score.dat, parses EnigmaXML, converts to IScore)
+  - Read Guitar Pro files of all versions: `.gp3`, `.gp4`, `.gp5` (binary), `.gpx` (Guitar Pro 6 container) and `.gp` (Guitar Pro 7 and 8). Tracks with tuning, string and fret, guitar transposition, drum kits, voices, tuplets, grace notes, ties, hammer-ons, pull-offs, slides, harmonics, dead notes, accents, dynamics, chord names, texts, lyrics, markers, tempo changes, repeats and alternate endings
+  - Read MEI `.mei` files (header metadata, parts from staff groups, layers, chords, tuplets and tuplet spans, grace notes, gestural accidentals, clef, key and meter changes, endings and repeats, multi-measure rests and measure repeats, lyrics, and the control events ties, slurs, dynamics, directions, tempo, hairpins, octave lines, pedals, fermatas, ornaments, breath marks, chord symbols, fingerings, glissandos and repeat marks)
+  - Write MEI 5 `.mei` files, valid against the MEI 5.0 schema (header, parts as staff groups, transposition, clef, key and meter changes, layers, chords, tuplets, beams, grace notes, ties, slurs, articulations, fermatas, lyrics, endings and repeats, and the control events dynamics, hairpins, tempo, words, rehearsal marks, chord symbols, fingerings, ornaments, pedals and octave lines)
+  - Read and write Standard MIDI Files (Type 0 and Type 1) using JDK `javax.sound.midi`
+  - Read MuseScore `.mscz` and `.mscx` files of all versions (1.x to 4.x) and write them in the MuseScore 4 format (parts, staves, voices, transposition, clefs, keys, time signatures including local ones, tuplets, grace notes, ties, slurs, dynamics, hairpins, articulations, ornaments, fermatas, lyrics, chord symbols, tempo, repeats and voltas)
+  - Read and write MusicXML 4.0 and compressed MXL archives
+  - Read Sibelius `.sib`, `.sco`, and `.si7` files (decrypts stream cipher, decompresses zlib, extracts metadata, instruments, notes, dynamics, lyrics)
 
 
 ## Quick Start
 
-### Reading a score (auto-detects format)
+### Reading a score
+
+The format is detected by the file extension; every format is read into the same `IScore` model.
 
 ```java
-IScore score = MusicFileFactory.getInstance().read(Path.of("score.musicxml"));
+IScore score = MusicFileFactory.getInstance().read(Path.of("song.gp5"));
 
 String title = score.getMovementTitle();
-IPartList partList = score.getPartList();
+List<? extends IScorePart> instruments = score.getPartList().getScoreParts();
 List<? extends IPart> parts = score.getParts();
 ```
 
-### Writing a score (auto-detects format)
+### Writing and converting a score
+
+MusicXML, MXL, MIDI and MuseScore can be written; reading one format and writing another converts it.
 
 ```java
-// Auto-detects by extension
-MusicFileFactory.getInstance().write(score, Path.of("output.musicxml"));
-MusicFileFactory.getInstance().write(score, Path.of("output.mxl"));
+IScore score = MusicFileFactory.getInstance().read(Path.of("score.sib"));
+MusicFileFactory.getInstance().write(score, Path.of("score.musicxml"));
+MusicFileFactory.getInstance().write(score, Path.of("score.mscz"));
+```
 
-// Or specify format explicitly
-MusicFileFactory.getInstance().write(score, outputStream, MusicFileFormat.MUSIC_XML);
+### Using streams
+
+With streams the format is given explicitly.
+
+```java
+IScore score = MusicFileFactory.getInstance().read(inputStream, MusicFileFormat.CAPELLA);
 MusicFileFactory.getInstance().write(score, outputStream, MusicFileFormat.MXL);
 ```
 
-### Using format-specific readers directly
+### Using a format factory directly
+
+Each format has a singleton factory in `com.github.toolarium.music.io.format.<format>`:
 
 ```java
-// MusicXML
-IMusicReader reader = MusicXMLIOFactory.getInstance().getReader();
-IScore score = reader.read(Path.of("score.musicxml"));
-
-IMusicWriter writer = MusicXMLIOFactory.getInstance().getWriter();
-writer.write(score, Path.of("output.musicxml"));
-```
-
-### Reading and writing MIDI files
-
-```java
-// Via the facade (auto-detects by extension)
-IScore score = MusicFileFactory.getInstance().read(Path.of("song.mid"));
-MusicFileFactory.getInstance().write(score, Path.of("output.mid"));
-
-// Or use the MIDI factory directly
 IMusicReader reader = MidiIOFactory.getInstance().getReader();
 IScore score = reader.read(Path.of("song.mid"));
 
 IMusicWriter writer = MidiIOFactory.getInstance().getWriter();
-writer.write(score, Path.of("output.mid"));
+writer.write(score, Path.of("copy.mid"));
 ```
 
-### Reading a Finale file
+| Format | `MusicFileFormat` | Factory | Reader | Writer |
+|--------|-------------------|---------|--------|--------|
+| ABC notation | `ABC` | `format.abc.AbcIOFactory` | `getReader()` | `getWriter()` |
+| capella | `CAPELLA` | `format.capella.CapellaIOFactory` | `getReader()` | |
+| Dorico | `DORICO` | `format.dorico.DoricoIOFactory` | `getReader()` | |
+| Finale | `FINALE` | `format.finale.FinaleIOFactory` | `getReader()` | |
+| Guitar Pro | `GUITAR_PRO` | `format.guitarpro.GuitarProIOFactory` | `getReader()` | |
+| LilyPond | `LILYPOND` | `format.lilypond.LilyPondIOFactory` | `getReader()` | `getWriter()` |
+| MEI | `MEI` | `format.mei.MeiIOFactory` | `getReader()` | `getWriter()` |
+| MIDI | `MIDI` | `format.midi.MidiIOFactory` | `getReader()` | `getWriter()` |
+| MuseScore | `MUSESCORE`, `MUSESCORE_XML` | `format.musescore.MuseScoreIOFactory` | `getReader()`, `getMscxReader()` | `getWriter()`, `getMscxWriter()` |
+| MusicXML | `MUSIC_XML` | `format.musicxml.impl.MusicXMLIOFactory` | `getReader()` | `getWriter()` |
+| MXL | `MXL` | `format.mxl.impl.MXLIOFactory` | `getReader()` | `getWriter()` |
+| Sibelius | `SIBELIUS` | `format.sibelius.SibeliusIOFactory` | `getReader()` | |
+
+What each reader converts and its known limitations are described in the format documentation
+(see [Documentation](#documentation)).
+
+### Accessing a Finale container
+
+The Finale container reader gives access to the metadata of a `.musx` file without converting the score.
 
 ```java
-IFinaleContainerReader reader = FinaleContainerFactory.getInstance().getReader();
-IFinaleContainer container = reader.read(Path.of("score.musx"));
-
+IFinaleContainer container = FinaleContainerFactory.getInstance().getReader().read(Path.of("score.musx"));
 IFinaleMetadata metadata = container.getMetadata();
 String key = metadata.getKeySignature();
 Double tempo = metadata.getInitialTempo();
 ```
+
+### Errors and thread safety
+
+A file that cannot be read (damaged, invalid, too large or of an unsupported format) is reported with an
+`IOException`; the readers limit the size of the input and of packed content, so a damaged file cannot exhaust the
+memory.
+
+`MusicFileFactory`, the format factories, the readers and the writers keep no state between calls and can be used
+by several threads at the same time. The model classes (`ScoreImpl`, `MeasureImpl`, ...) are mutable and not
+synchronized: a score can be read by several threads, but must not be changed while another thread uses it.
 
 
 ## Model
@@ -520,32 +560,58 @@ com.github.toolarium.music
 |       +-- enums (NoteTypeValue, ClefSign, BarStyleValue, ...)
 +-- io/
     |-- IMusicReader, IMusicWriter
-    |-- musicxml/impl/  (MusicXMLIOFactory, MusicXMLReaderImpl, MusicXMLWriterImpl)
-    |-- mxl/impl/       (MXLIOFactory, MXLReaderImpl, MXLWriterImpl)
-    |-- midi/            (MidiIOFactory, MidiReaderImpl, MidiWriterImpl, converters)
-    +-- finale/          (FinaleContainerFactory, IFinaleContainer, ...)
+    |-- dto/              (ScoreData, PartData, MeasureData, VoiceData, EventData, NoteData, Fraction, ...)
+    |-- converter/        (ScoreBuilder, NoteValueConverter, PitchSpeller, ChordSymbolParser, DynamicsConverter)
+    |-- stream/           (StreamContentReader, ZipContentReader)
+    |-- xml/              (XmlDocumentReader)
+    +-- format/
+        |-- abc/          (AbcIOFactory; impl/ AbcReaderImpl, AbcTuneParser, AbcFieldParser, AbcWriterImpl, AbcScoreWriter, AbcVoiceWriter, dto/)
+        |-- capella/      (CapellaIOFactory; impl/ CapellaReaderImpl, CapxScoreParser, CapBinaryReader, dto/)
+        |-- dorico/       (DoricoIOFactory; impl/ DoricoReaderImpl, DoricoTreeDecoder, converters)
+        |-- finale/       (FinaleIOFactory, FinaleContainerFactory; impl/ FinaleReaderImpl, EnigmaXmlDecryptor, ...)
+        |-- guitarpro/    (GuitarProIOFactory; impl/ GpBinaryReader, GpxContainerReader, GpifReader, dto/)
+        |-- lilypond/     (LilyPondIOFactory; impl/ LilyPondReaderImpl, LilyPondTokenizer, LilyPondParser, LilyPondMeasureBuilder, LilyPondWriterImpl, LilyPondScoreWriter, LilyPondVoiceWriter, dto/)
+        |-- mei/          (MeiIOFactory; impl/ MeiReaderImpl, MeiBodyParser, MeiConverter, MeiWriterImpl, MeiScoreWriter, MeiLayerWriter, dto/)
+        |-- midi/         (MidiIOFactory; impl/ MidiReaderImpl, MidiWriterImpl, converters)
+        |-- musescore/    (MuseScoreIOFactory; impl/ MuseScoreReader, MuseScoreWriter, converters)
+        |-- musicxml/impl/ (MusicXMLIOFactory, MusicXMLReaderImpl, MusicXMLWriterImpl)
+        |-- mxl/impl/     (MXLIOFactory, MXLReaderImpl, MXLWriterImpl)
+        +-- sibelius/     (SibeliusIOFactory; impl/ SibeliusCipher, SibeliusContainerReader, SibeliusReaderImpl)
 ```
 
 
 ## Building
 
 ```bash
-# Set up the build environment
-source cb --setenv   # Linux/Git Bash
-cb --setenv          # Windows
-
-# Build
-cb
+cb or gradle
 ```
 
 Requires Java 11+.
+
+The build runs the unit tests on the sample files tracked in `src/test/resources/samples`. The tests that read
+many samples process them in parallel, by default with 1.5 threads per processor. The number of threads can be set:
+
+```bash
+cb -PtestThreads=16
+```
+
+### Integration tests
+
+The integration tests run the same tests on all samples, including the local samples in
+`src/test/resources/samples/_protected_` (copyrighted real-world scores, not part of the repository):
+
+```bash
+cb integrationTest
+```
+
+The integration tests take about 8 minutes on a machine with 8 processors. Without the protected folder they run like the regular build. A test whose sample type only exists in the protected folder is skipped if no sample is found.
 
 
 ## Adding the library
 
 **Gradle**
 ```gradle
-implementation 'com.github.toolarium:toolarium-music:0.8.0'
+implementation 'com.github.toolarium:toolarium-music:0.9.0'
 ```
 
 **Maven**
@@ -553,7 +619,7 @@ implementation 'com.github.toolarium:toolarium-music:0.8.0'
 <dependency>
     <groupId>com.github.toolarium</groupId>
     <artifactId>toolarium-music</artifactId>
-    <version>0.8.0</version>
+    <version>0.9.0</version>
 </dependency>
 ```
 
@@ -564,7 +630,21 @@ The library brings `jackson-dataformat-xml` and `slf4j-api` as transitive depend
 
 - [Architecture](ARCHITECTURE.md): design decisions, package structure, implementation phases
 - [Model Reference](docs/MODEL.md): complete list of all model interfaces and their fields
+- [Notation Formats Overview](docs/notation-formats-overview.md): survey of notation tools and file formats, their status, popularity and support priority
+
+### File Formats
+
+- [ABC Format](docs/abc-format.md): supported ABC notation .abc syntax, its mapping and the ABC writer
+- [Capella Format](docs/capella-format.md): capella .capx (CapXML) and reverse-engineered legacy binary .cap format documentation
+- [Dorico Format](docs/dorico-format.md): reverse-engineered Dorico .dorico format documentation
 - [Finale Format](docs/finale-musx-format.md): reverse-engineered Finale .musx/.mus format documentation
+- [Guitar Pro Format](docs/guitarpro-format.md): Guitar Pro .gp3/.gp4/.gp5 binary, .gpx container and .gp (GPIF) format documentation
+- [LilyPond Format](docs/lilypond-format.md): supported LilyPond .ly syntax, its mapping and the LilyPond writer
+- [MEI Format](docs/mei-format.md): supported MEI .mei elements, their mapping and the MEI writer
+- [MIDI Format](docs/midi-format.md): Standard MIDI File .mid/.midi reading and writing
+- [MuseScore Format](docs/musescore-format.md): MuseScore .mscz/.mscx format documentation (versions 1.x to 4.x)
+- [MusicXML and MXL Format](docs/musicxml-format.md): MusicXML .musicxml/.xml and compressed .mxl files
+- [Sibelius Format](docs/sibelius-sib-format.md): reverse-engineered Sibelius .sib/.sco format documentation
 
 
 ## Built With

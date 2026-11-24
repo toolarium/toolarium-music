@@ -1,0 +1,12 @@
+X:2
+T:Two voices
+M:4/4
+L:1/4
+%%score {RH LH}
+V:RH clef=treble name="Piano"
+V:LH clef=bass
+K:Gm
+V:RH
+G A B c | d4 |]
+V:LH
+G,, D, G, D, | G,,4 |]

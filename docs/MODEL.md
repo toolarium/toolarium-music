@@ -66,7 +66,7 @@ Measure structure, attributes, and navigation.
 
 | Interface | Description | Key Fields |
 |-----------|-------------|------------|
-| `IMeasure` | A single measure in a part | number, width, implicit, attributes, notes, forwards, backups, directions, barlines, harmonies, prints, sounds |
+| `IMeasure` | A single measure in a part | number, width, implicit, musicData (the content in document order), and the typed views attributes, notes, forwards, backups, directions, barlines, harmonies, prints, sounds |
 | `IPart` | A part containing measures | id, measures |
 | `IAttributes` | Key, time, clef changes | divisions, keys, times, staves, clefs, transposes, staffDetails |
 | `IKey` | Key signature | fifths, mode, cancel |
@@ -77,6 +77,20 @@ Measure structure, attributes, and navigation.
 | `IForward` | Move forward in time (multi-voice) | duration, voice, staff |
 | `IBackup` | Move backward in time (multi-voice) | duration |
 | `IPrint` | Page and system break control | newSystem, newPage, blankPage, pageNumber |
+
+### Measure content order
+
+As in MusicXML, the content of a measure is an ordered sequence: `IMeasure.getMusicData()` returns the
+notes, backups, forwards, attributes, directions, harmonies, barlines, prints and sounds in document
+order. The order defines the time position of each element: a note advances the time by its duration
+(chord notes do not), a backup moves back and a forward moves on; a direction or a clef change applies
+at the current time. A measure with two voices therefore contains the notes of voice 1, a backup over
+the measure length and the notes of voice 2.
+
+The typed getters (`getNotes()`, `getBackups()`, ...) return read-only lists of one element type in
+document order (empty if the measure has none). `MeasureImpl.setMusicData()` and `addMusicData()` set
+the content in order; a typed setter replaces the elements of its type at the position of the first one
+(attributes and print elements without a previous one are inserted at the start, all others at the end).
 
 
 ## Package: model/note
@@ -172,7 +186,7 @@ Shared enums and marker interfaces.
 
 | Type | Values |
 |------|--------|
-| `IMusicDataElement` | Marker interface for elements inside a measure (Note, Direction, Attributes, Barline, Harmony, Forward, Backup, Print, Sound) |
+| `IMusicDataElement` | Marker interface for elements inside a measure (Note, Direction, Attributes, Barline, Harmony, Forward, Backup, Print, Sound); `IMeasure.getMusicData()` holds them in document order |
 | `NoteTypeValue` | maxima, long, breve, whole, half, quarter, eighth, 16th, 32nd, 64th, 128th, 256th, 512th, 1024th |
 | `ClefSign` | G, F, C, percussion, TAB, jianpu, none |
 | `StemValue` | up, down, double, none |

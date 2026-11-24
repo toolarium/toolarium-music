@@ -1,0 +1,16 @@
+%abc-2.1
+X:1
+T:Feature Test
+T:A subtitle
+C:Test Composer
+Z:toolarium
+M:3/4
+L:1/8
+Q:1/4=96
+K:D
+"D"A,2 | !mf!D2 F2 A2 | "G/B"B>c d2- d2 | (3efg a2 [DFA]2 |1 {g}f2 e2 d2 :|2 .f2 Te2 d2 |]
+w:Hel-lo the world is a fine place to be ev-er
+P:B
+|: ^c2 =c2 _B2 | z2 x2 c2 | (de f2) H g2 :|
+Z2 |
+[M:4/4] c4 d4 |]

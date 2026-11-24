@@ -6,68 +6,37 @@
 
 package com.github.toolarium.music.model.measure.impl;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.github.toolarium.music.model.barline.impl.BarlineImpl;
+import com.github.toolarium.music.model.common.IMusicDataElement;
 import com.github.toolarium.music.model.direction.impl.DirectionImpl;
 import com.github.toolarium.music.model.direction.impl.SoundImpl;
 import com.github.toolarium.music.model.harmony.impl.HarmonyImpl;
 import com.github.toolarium.music.model.measure.IMeasure;
 import com.github.toolarium.music.model.note.impl.NoteImpl;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
 /**
  * Implements the {@link IMeasure} interface.
  *
+ * <p>The content is kept in one list in document order ({@link #getMusicData()}). The typed getters
+ * return read-only lists of the elements of one type (empty if there are none). A typed setter replaces the elements of its
+ * type at the position of the first one; if there are none, attributes and print elements are
+ * inserted at the start and all other elements are appended.</p>
+ *
  * @author patrick
  */
+@JsonSerialize(using = MeasureSerializer.class)
+@JsonDeserialize(using = MeasureDeserializer.class)
 public class MeasureImpl implements IMeasure {
-
-    @JacksonXmlProperty(isAttribute = true, localName = "number")
     private String number;
-
-    @JacksonXmlProperty(isAttribute = true, localName = "width")
     private String width;
-
-    @JacksonXmlProperty(isAttribute = true, localName = "implicit")
     private String implicit;
-
-    @JacksonXmlElementWrapper(useWrapping = false)
-    @JacksonXmlProperty(localName = "attributes")
-    private List<AttributesImpl> attributes;
-
-    @JacksonXmlElementWrapper(useWrapping = false)
-    @JacksonXmlProperty(localName = "note")
-    private List<NoteImpl> notes;
-
-    @JacksonXmlElementWrapper(useWrapping = false)
-    @JacksonXmlProperty(localName = "forward")
-    private List<ForwardImpl> forwards;
-
-    @JacksonXmlElementWrapper(useWrapping = false)
-    @JacksonXmlProperty(localName = "backup")
-    private List<BackupImpl> backups;
-
-    @JacksonXmlElementWrapper(useWrapping = false)
-    @JacksonXmlProperty(localName = "direction")
-    private List<DirectionImpl> directions;
-
-    @JacksonXmlElementWrapper(useWrapping = false)
-    @JacksonXmlProperty(localName = "barline")
-    private List<BarlineImpl> barlines;
-
-    @JacksonXmlElementWrapper(useWrapping = false)
-    @JacksonXmlProperty(localName = "harmony")
-    private List<HarmonyImpl> harmonies;
-
-    @JacksonXmlElementWrapper(useWrapping = false)
-    @JacksonXmlProperty(localName = "print")
-    private List<PrintImpl> prints;
-
-    @JacksonXmlElementWrapper(useWrapping = false)
-    @JacksonXmlProperty(localName = "sound")
-    private List<SoundImpl> sounds;
+    private List<IMusicDataElement> musicData = new ArrayList<>();
 
 
     /**
@@ -134,34 +103,72 @@ public class MeasureImpl implements IMeasure {
 
 
     /**
-     * Gets the attributes.
+     * Gets the content of the measure in document order.
      *
-     * @return the attributes
+     * @return the content (read-only), never null
      */
     @Override
-    public List<AttributesImpl> getAttributes() {
-        return attributes;
+    public List<IMusicDataElement> getMusicData() {
+        return Collections.unmodifiableList(musicData);
     }
 
 
     /**
-     * Sets the attributes.
+     * Sets the content of the measure in document order.
+     *
+     * @param musicData the content (null entries are ignored)
+     */
+    public void setMusicData(List<? extends IMusicDataElement> musicData) {
+        this.musicData = new ArrayList<>();
+        if (musicData != null) {
+            for (IMusicDataElement element : musicData) {
+                addMusicData(element);
+            }
+        }
+    }
+
+
+    /**
+     * Adds an element at the end of the content.
+     *
+     * @param element the element (ignored if null)
+     */
+    public void addMusicData(IMusicDataElement element) {
+        if (element != null) {
+            musicData.add(element);
+        }
+    }
+
+
+    /**
+     * Gets the attributes.
+     *
+     * @return the attributes (read-only), empty if there are none
+     */
+    @Override
+    public List<AttributesImpl> getAttributes() {
+        return elements(AttributesImpl.class);
+    }
+
+
+    /**
+     * Sets the attributes. Without existing attributes they are inserted at the start of the measure (after print elements).
      *
      * @param attributes the attributes
      */
     public void setAttributes(List<AttributesImpl> attributes) {
-        this.attributes = attributes;
+        replace(AttributesImpl.class, attributes, true);
     }
 
 
     /**
      * Gets the notes.
      *
-     * @return the notes
+     * @return the notes (read-only), empty if there are none
      */
     @Override
     public List<NoteImpl> getNotes() {
-        return notes;
+        return elements(NoteImpl.class);
     }
 
 
@@ -171,18 +178,18 @@ public class MeasureImpl implements IMeasure {
      * @param notes the notes
      */
     public void setNotes(List<NoteImpl> notes) {
-        this.notes = notes;
+        replace(NoteImpl.class, notes, false);
     }
 
 
     /**
      * Gets the forwards.
      *
-     * @return the forwards
+     * @return the forwards (read-only), empty if there are none
      */
     @Override
     public List<ForwardImpl> getForwards() {
-        return forwards;
+        return elements(ForwardImpl.class);
     }
 
 
@@ -192,18 +199,18 @@ public class MeasureImpl implements IMeasure {
      * @param forwards the forwards
      */
     public void setForwards(List<ForwardImpl> forwards) {
-        this.forwards = forwards;
+        replace(ForwardImpl.class, forwards, false);
     }
 
 
     /**
      * Gets the backups.
      *
-     * @return the backups
+     * @return the backups (read-only), empty if there are none
      */
     @Override
     public List<BackupImpl> getBackups() {
-        return backups;
+        return elements(BackupImpl.class);
     }
 
 
@@ -213,18 +220,18 @@ public class MeasureImpl implements IMeasure {
      * @param backups the backups
      */
     public void setBackups(List<BackupImpl> backups) {
-        this.backups = backups;
+        replace(BackupImpl.class, backups, false);
     }
 
 
     /**
      * Gets the directions.
      *
-     * @return the directions
+     * @return the directions (read-only), empty if there are none
      */
     @Override
     public List<DirectionImpl> getDirections() {
-        return directions;
+        return elements(DirectionImpl.class);
     }
 
 
@@ -234,18 +241,18 @@ public class MeasureImpl implements IMeasure {
      * @param directions the directions
      */
     public void setDirections(List<DirectionImpl> directions) {
-        this.directions = directions;
+        replace(DirectionImpl.class, directions, false);
     }
 
 
     /**
      * Gets the barlines.
      *
-     * @return the barlines
+     * @return the barlines (read-only), empty if there are none
      */
     @Override
     public List<BarlineImpl> getBarlines() {
-        return barlines;
+        return elements(BarlineImpl.class);
     }
 
 
@@ -255,18 +262,18 @@ public class MeasureImpl implements IMeasure {
      * @param barlines the barlines
      */
     public void setBarlines(List<BarlineImpl> barlines) {
-        this.barlines = barlines;
+        replace(BarlineImpl.class, barlines, false);
     }
 
 
     /**
      * Gets the harmonies.
      *
-     * @return the harmonies
+     * @return the harmonies (read-only), empty if there are none
      */
     @Override
     public List<HarmonyImpl> getHarmonies() {
-        return harmonies;
+        return elements(HarmonyImpl.class);
     }
 
 
@@ -276,39 +283,39 @@ public class MeasureImpl implements IMeasure {
      * @param harmonies the harmonies
      */
     public void setHarmonies(List<HarmonyImpl> harmonies) {
-        this.harmonies = harmonies;
+        replace(HarmonyImpl.class, harmonies, false);
     }
 
 
     /**
      * Gets the prints.
      *
-     * @return the prints
+     * @return the prints (read-only), empty if there are none
      */
     @Override
     public List<PrintImpl> getPrints() {
-        return prints;
+        return elements(PrintImpl.class);
     }
 
 
     /**
-     * Sets the prints.
+     * Sets the prints. Without existing print elements they are inserted at the start of the measure.
      *
      * @param prints the prints
      */
     public void setPrints(List<PrintImpl> prints) {
-        this.prints = prints;
+        replace(PrintImpl.class, prints, true);
     }
 
 
     /**
      * Gets the sounds.
      *
-     * @return the sounds
+     * @return the sounds (read-only), empty if there are none
      */
     @Override
     public List<SoundImpl> getSounds() {
-        return sounds;
+        return elements(SoundImpl.class);
     }
 
 
@@ -318,7 +325,62 @@ public class MeasureImpl implements IMeasure {
      * @param sounds the sounds
      */
     public void setSounds(List<SoundImpl> sounds) {
-        this.sounds = sounds;
+        replace(SoundImpl.class, sounds, false);
+    }
+
+
+    /**
+     * Gets the elements of one type in document order.
+     *
+     * @param <T> the element type
+     * @param type the element class
+     * @return the elements (read-only), empty if there are none
+     */
+    private <T extends IMusicDataElement> List<T> elements(Class<T> type) {
+        List<T> result = new ArrayList<>();
+        for (IMusicDataElement element : musicData) {
+            if (type.isInstance(element)) {
+                result.add(type.cast(element));
+            }
+        }
+        return Collections.unmodifiableList(result);
+    }
+
+
+    /**
+     * Replaces the elements of one type at the position of the first existing one.
+     *
+     * @param type the element class
+     * @param values the new elements, or null to remove them
+     * @param atStart true to insert at the start of the measure (after print elements) if there are no elements of the type
+     */
+    private void replace(Class<? extends IMusicDataElement> type, List<? extends IMusicDataElement> values, boolean atStart) {
+        int index = -1;
+        for (int i = 0; i < musicData.size(); i++) {
+            if (type.isInstance(musicData.get(i))) {
+                index = i;
+                break;
+            }
+        }
+        musicData.removeIf(type::isInstance);
+        if (values == null) {
+            return;
+        }
+
+        if (index < 0) {
+            index = musicData.size();
+            if (atStart) {
+                index = 0;
+                while (index < musicData.size() && musicData.get(index) instanceof PrintImpl) {
+                    index++;
+                }
+            }
+        }
+        for (IMusicDataElement value : values) {
+            if (value != null) {
+                musicData.add(index++, value);
+            }
+        }
     }
 
 
@@ -329,8 +391,7 @@ public class MeasureImpl implements IMeasure {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(number, width, implicit, attributes, notes, forwards, backups,
-                directions, barlines, harmonies, prints, sounds);
+        return Objects.hash(number, width, implicit, musicData);
     }
 
 
@@ -352,15 +413,7 @@ public class MeasureImpl implements IMeasure {
         return Objects.equals(number, other.number)
                 && Objects.equals(width, other.width)
                 && Objects.equals(implicit, other.implicit)
-                && Objects.equals(attributes, other.attributes)
-                && Objects.equals(notes, other.notes)
-                && Objects.equals(forwards, other.forwards)
-                && Objects.equals(backups, other.backups)
-                && Objects.equals(directions, other.directions)
-                && Objects.equals(barlines, other.barlines)
-                && Objects.equals(harmonies, other.harmonies)
-                && Objects.equals(prints, other.prints)
-                && Objects.equals(sounds, other.sounds);
+                && Objects.equals(musicData, other.musicData);
     }
 
 
@@ -371,9 +424,6 @@ public class MeasureImpl implements IMeasure {
      */
     @Override
     public String toString() {
-        return "MeasureImpl [number=" + number + ", width=" + width + ", implicit=" + implicit
-                + ", attributes=" + attributes + ", notes=" + notes + ", forwards=" + forwards
-                + ", backups=" + backups + ", directions=" + directions + ", barlines=" + barlines
-                + ", harmonies=" + harmonies + ", prints=" + prints + ", sounds=" + sounds + "]";
+        return "MeasureImpl [number=" + number + ", width=" + width + ", implicit=" + implicit + ", musicData=" + musicData + "]";
     }
 }

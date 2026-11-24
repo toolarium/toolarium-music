@@ -33,6 +33,10 @@ public class IdentificationImpl implements IIdentification {
     @JacksonXmlProperty(localName = "source")
     private String source;
 
+    @JacksonXmlElementWrapper(localName = "miscellaneous")
+    @JacksonXmlProperty(localName = "miscellaneous-field")
+    private List<MiscellaneousFieldImpl> miscellaneous;
+
 
     /**
      * Constructor.
@@ -127,13 +131,34 @@ public class IdentificationImpl implements IIdentification {
 
 
     /**
+     * Gets the miscellaneous fields.
+     *
+     * @return the miscellaneous fields, or null if there are none
+     */
+    @Override
+    public List<MiscellaneousFieldImpl> getMiscellaneous() {
+        return miscellaneous;
+    }
+
+
+    /**
+     * Sets the miscellaneous fields.
+     *
+     * @param miscellaneous the miscellaneous fields
+     */
+    public void setMiscellaneous(List<MiscellaneousFieldImpl> miscellaneous) {
+        this.miscellaneous = miscellaneous;
+    }
+
+
+    /**
      * Returns a hash code value for this object.
      *
      * @return a hash code value
      */
     @Override
     public int hashCode() {
-        return Objects.hash(creators, rights, encoding, source);
+        return Objects.hash(creators, rights, encoding, source, miscellaneous);
     }
 
 
@@ -155,7 +180,8 @@ public class IdentificationImpl implements IIdentification {
         return Objects.equals(creators, other.creators)
                 && Objects.equals(rights, other.rights)
                 && Objects.equals(encoding, other.encoding)
-                && Objects.equals(source, other.source);
+                && Objects.equals(source, other.source)
+                && Objects.equals(miscellaneous, other.miscellaneous);
     }
 
 
@@ -169,6 +195,7 @@ public class IdentificationImpl implements IIdentification {
         return "IdentificationImpl [creators=" + creators
                 + ", rights=" + rights
                 + ", encoding=" + encoding
-                + ", source=" + source + "]";
+                + ", source=" + source
+                + ", miscellaneous=" + miscellaneous + "]";
     }
 }

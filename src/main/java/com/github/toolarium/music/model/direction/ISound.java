@@ -78,4 +78,11 @@ public interface ISound extends IMusicDataElement {
      * @return the forward repeat
      */
     String getForwardRepeat();
+
+    /**
+     * Gets the offset: the time from the current position of the score to the sound, in divisions.
+     *
+     * @return the offset, or null if the sound takes place at the current position
+     */
+    Integer getOffset();
 }

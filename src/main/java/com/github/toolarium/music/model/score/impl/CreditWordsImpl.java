@@ -30,6 +30,15 @@ public class CreditWordsImpl implements ICreditWords {
     @JacksonXmlProperty(isAttribute = true, localName = "font-size")
     private String fontSize;
 
+    @JacksonXmlProperty(isAttribute = true, localName = "font-family")
+    private String fontFamily;
+
+    @JacksonXmlProperty(isAttribute = true, localName = "font-weight")
+    private String fontWeight;
+
+    @JacksonXmlProperty(isAttribute = true, localName = "font-style")
+    private String fontStyle;
+
     @JacksonXmlProperty(isAttribute = true, localName = "justify")
     private String justify;
 
@@ -122,6 +131,69 @@ public class CreditWordsImpl implements ICreditWords {
 
 
     /**
+     * Gets the font-family attribute.
+     *
+     * @return the font-family attribute
+     */
+    @Override
+    public String getFontFamily() {
+        return fontFamily;
+    }
+
+
+    /**
+     * Sets the font-family attribute.
+     *
+     * @param fontFamily the font-family attribute
+     */
+    public void setFontFamily(String fontFamily) {
+        this.fontFamily = fontFamily;
+    }
+
+
+    /**
+     * Gets the font-weight attribute.
+     *
+     * @return the font-weight attribute
+     */
+    @Override
+    public String getFontWeight() {
+        return fontWeight;
+    }
+
+
+    /**
+     * Sets the font-weight attribute.
+     *
+     * @param fontWeight the font-weight attribute
+     */
+    public void setFontWeight(String fontWeight) {
+        this.fontWeight = fontWeight;
+    }
+
+
+    /**
+     * Gets the font-style attribute.
+     *
+     * @return the font-style attribute
+     */
+    @Override
+    public String getFontStyle() {
+        return fontStyle;
+    }
+
+
+    /**
+     * Sets the font-style attribute.
+     *
+     * @param fontStyle the font-style attribute
+     */
+    public void setFontStyle(String fontStyle) {
+        this.fontStyle = fontStyle;
+    }
+
+
+    /**
      * Gets the justify attribute.
      *
      * @return the justify attribute
@@ -170,7 +242,7 @@ public class CreditWordsImpl implements ICreditWords {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(value, defaultX, defaultY, fontSize, justify, valign);
+        return Objects.hash(value, defaultX, defaultY, fontSize, fontFamily, fontWeight, fontStyle, justify, valign);
     }
 
 
@@ -193,6 +265,9 @@ public class CreditWordsImpl implements ICreditWords {
                 && Objects.equals(defaultX, other.defaultX)
                 && Objects.equals(defaultY, other.defaultY)
                 && Objects.equals(fontSize, other.fontSize)
+                && Objects.equals(fontFamily, other.fontFamily)
+                && Objects.equals(fontWeight, other.fontWeight)
+                && Objects.equals(fontStyle, other.fontStyle)
                 && Objects.equals(justify, other.justify)
                 && Objects.equals(valign, other.valign);
     }
@@ -209,6 +284,9 @@ public class CreditWordsImpl implements ICreditWords {
                 + ", defaultX=" + defaultX
                 + ", defaultY=" + defaultY
                 + ", fontSize=" + fontSize
+                + ", fontFamily=" + fontFamily
+                + ", fontWeight=" + fontWeight
+                + ", fontStyle=" + fontStyle
                 + ", justify=" + justify
                 + ", valign=" + valign + "]";
     }

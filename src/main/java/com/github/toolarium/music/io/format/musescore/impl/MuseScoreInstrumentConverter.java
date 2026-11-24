@@ -1,0 +1,497 @@
+/*
+ * MuseScoreInstrumentConverter.java
+ *
+ * Copyright by toolarium, all rights reserved.
+ */
+package com.github.toolarium.music.io.format.musescore.impl;
+
+import java.util.HashMap;
+import java.util.Map;
+
+
+/**
+ * Converts a MusicXML instrument sound (for example brass.trumpet.bflat) and the transposition of a part into the
+ * MuseScore instrument (for example bb-trumpet), by which MuseScore identifies an instrument. The table follows the
+ * instrument list of MuseScore 4 (instruments.xml): for every sound and transposition the first MuseScore instrument.
+ *
+ * @author patrick
+ */
+public final class MuseScoreInstrumentConverter {
+    private static final String FIELD_SEPARATOR = "\\|";
+    private static final String KEY_SEPARATOR = "|";
+    private static final int SOUND = 0;
+    private static final int CHROMATIC = 1;
+    private static final int ID = 2;
+    private static final char SEPARATOR = '.';
+
+    // sound|transposition from written to sounding pitch in semitones|MuseScore instrument
+    private static final String[] INSTRUMENTS = {
+        "wind.group|0|winds",
+        "wind.flutes.flute.piccolo|15|eb-piccolo",
+        "wind.flutes.flute.piccolo|13|db-piccolo",
+        "wind.flutes.flute.piccolo|12|piccolo",
+        "wind.flutes.flute|7|treble-flute",
+        "wind.flutes.danso|0|danso",
+        "wind.flutes.flute|3|soprano-flute",
+        "wind.flutes.flute.irish|0|irish-flute",
+        "wind.flutes.flute|0|traverso",
+        "wind.flutes.flute.alto|-5|alto-flute",
+        "wind.flutes.flute.bass|-12|bass-flute",
+        "wind.flutes.flute.contra-alto|-17|contra-alto-flute",
+        "wind.flutes.flute.contrabass|-24|contrabass-flute",
+        "wind.flutes.flute.subcontrabass|-29|subcontra-alto-flute",
+        "wind.flutes.flute.double-contrabass|-36|double-contrabass-flute",
+        "wind.flutes.flute.double-contrabass|-48|hyperbass-flute",
+        "wind.flutes.di-zi|0|a-dizi",
+        "wind.flutes.shakuhachi|0|shakuhachi",
+        "wind.flutes.fife|8|fife",
+        "wind.flutes.whistle.tin.d|0|d-tin-whistle",
+        "wind.flutes.whistle.tin|0|c-tin-whistle",
+        "wind.flutes.whistle.tin.bflat|0|bflat-tin-whistle",
+        "wind.flutes.slide|0|slide-whistle",
+        "wind.flutes.flageolet|0|french-flageolet",
+        "wind.flutes.recorder.garklein|0|garklein-recorder",
+        "wind.flutes.recorder.sopranino|0|sopranino-recorder",
+        "wind.flutes.recorder.soprano|0|soprano-recorder",
+        "wind.flutes.recorder|0|recorder",
+        "wind.flutes.recorder.alto|0|alto-recorder",
+        "wind.flutes.recorder.tenor|0|tenor-recorder",
+        "wind.flutes.recorder.bass|0|bass-recorder",
+        "wind.flutes.recorder.great-bass|0|greatbass-recorder",
+        "wind.flutes.recorder.contrabass|0|contrabass-recorder",
+        "wind.flutes.ocarina|0|g-soprano-ocarina",
+        "wind.flutes.gemshorn|0|gemshorn",
+        "wind.flutes.panpipes|0|pan-flute",
+        "wind.flutes.quena|0|quena",
+        "wind.reed.heckelphone.piccolo|0|piccolo-heckelphone",
+        "wind.reed.oboe.piccolo|3|piccolo-oboe",
+        "wind.reed.oboe|0|baroque-oboe",
+        "wind.reed.oboe-damore|-3|oboe-d'amore",
+        "wind.reed.oboe-da-caccia|-7|oboe-da-caccia",
+        "wind.reed.english-horn|-7|english-horn",
+        "wind.reed.oboe.bass|0|bass-oboe",
+        "wind.reed.heckelphone|-12|heckelphone",
+        "wind.reed.shawm|0|sopranino-shawm",
+        "wind.reed.cromorne|0|cromorne",
+        "wind.reed.crumhorn|0|crumhorn",
+        "wind.reed.crumhorn.soprano|0|soprano-crumhorn",
+        "wind.reed.crumhorn.alto|0|alto-crumhorn",
+        "wind.reed.crumhorn.tenor|0|tenor-crumhorn",
+        "wind.reed.crumhorn.bass|0|bass-crumhorn",
+        "wind.reed.crumhorn.great-bass|0|greatbass-crumhorn",
+        "wind.reed.cornamuse|0|cornamuse",
+        "wind.reed.rauschpfeife|0|sopranino-rauschpfeife",
+        "wind.reed.duduk|0|f-duduk",
+        "wind.reed.shenai|0|shenai",
+        "wind.reed.clarinet.piccolo.aflat|8|piccolo-clarinet",
+        "wind.reed.clarinet|7|soprano-clarinet",
+        "wind.reed.clarinet.eflat|3|eb-clarinet",
+        "wind.reed.clarinet|2|d-clarinet",
+        "wind.reed.clarinet|0|c-clarinet",
+        "wind.reed.clarinet.bflat|-2|bb-clarinet",
+        "wind.reed.clarinet|-2|clarinet",
+        "wind.reed.clarinet.a|-3|a-clarinet",
+        "wind.reed.clarinet|-5|g-clarinet",
+        "wind.reed.clarinet.basset|-3|basset-clarinet",
+        "wind.reed.clarinet.alto|-9|alto-clarinet",
+        "wind.reed.basset-horn|-7|basset-horn",
+        "wind.reed.clarinet.bass|-14|bass-clarinet",
+        "wind.reed.clarinet.bass|-2|bb-bass-clarinet-bass-clef",
+        "wind.reed.clarinet.bass|-15|a-bass-clarinet",
+        "wind.reed.clarinet.bass|-3|a-bass-clarinet-bass-clef)",
+        "wind.reed.clarinet.contra-alto|-21|contra-alto-clarinet",
+        "wind.reed.clarinet.contrabass|-26|contrabass-clarinet",
+        "wind.reed.chalumeau|0|sopranino-chalumeau",
+        "wind.reed.xaphoon|2|d-xaphoon",
+        "wind.reed.xaphoon|0|xaphoon",
+        "wind.reed.xaphoon|-2|bb-xaphoon",
+        "wind.reed.xaphoon|-5|g-xaphoon",
+        "wind.reed.tarogato|0|tarogato",
+        "wind.reed.octavin|0|octavin",
+        "wind.reed.saxophone.sopraninissimo|10|sopranissimo-saxophone",
+        "wind.reed.saxophone.sopranino|3|sopranino-saxophone",
+        "wind.reed.saxophone.aulochrome|-2|aulochrome",
+        "wind.reed.saxophone.soprano|-2|soprano-saxophone",
+        "wind.reed.saxophone.mezzo-soprano|-7|mezzo-soprano-saxophone",
+        "wind.reed.heckelphone-clarinet|0|heckelphone-clarinet",
+        "wind.reed.saxophone.alto|-9|alto-saxophone",
+        "wind.reed.saxophone.melody|-12|melody-saxophone",
+        "wind.reed.saxophone|-14|saxophone",
+        "wind.reed.saxophone.tenor|-14|tenor-saxophone",
+        "wind.reed.saxophone.baritone|-21|baritone-saxophone",
+        "wind.reed.saxophone.bass|-26|bass-saxophone",
+        "wind.reed.saxophone.contrabass|-33|contrabass-saxophone",
+        "wind.reed.saxophone.subcontrabass|-38|subcontrabass-saxophone",
+        "wind.reed.bassoon|0|bassoon",
+        "wind.reed.contrabassoon|-12|contrabassoon",
+        "wind.reed.contrabass|-12|reed-contrabass",
+        "wind.reed.dulcian|0|dulcian",
+        "wind.reed.rackett|0|rackett",
+        "wind.reed.sarrusaphone|3|sopranino-sarrusophone",
+        "wind.reed.sarrusaphone|-2|sarrusophone",
+        "wind.reed.sarrusaphone|-9|alto-sarrusophone",
+        "wind.reed.sarrusaphone|-14|tenor-sarrusophone",
+        "wind.reed.sarrusaphone|-21|baritone-sarrusophone",
+        "wind.reed.sarrusaphone|-26|bass-sarrusophone",
+        "wind.reed.sarrusaphone|-33|contrabass-sarrusophone",
+        "wind.pipes.bagpipes|-2|bagpipe",
+        "keyboard.accordion|0|accordion",
+        "keyboard.bandoneon|0|bandoneon",
+        "keyboard.concertina|0|concertina",
+        "wind.reed.harmonica|0|harmonica",
+        "wind.reed.harmonica.bass|0|bass-harmonica-hohner",
+        "wind.reed.melodica|0|melodica",
+        "wind.reed.sheng|0|sheng",
+        "brass.group|0|brass",
+        "brass.natural-horn|0|c-horn-alto",
+        "brass.french-horn|-2|bb-horn-alto",
+        "brass.natural-horn|-3|a-horn",
+        "brass.natural-horn|-4|ab-horn",
+        "brass.natural-horn|-5|g-horn",
+        "brass.natural-horn|-8|e-horn",
+        "brass.natural-horn|-9|eb-horn",
+        "brass.natural-horn|-10|d-horn",
+        "brass.french-horn|-7|horn",
+        "brass.natural-horn|-12|c-horn",
+        "brass.natural-horn|-14|bb-horn-basso",
+        "brass.vienna-horn|-7|vienna-horn",
+        "brass.wagner-tuba|-2|bb-wagner-tuba",
+        "brass.wagner-tuba|-7|f-wagner-tuba",
+        "brass.cornet.soprano|3|eb-cornet",
+        "brass.cornet|0|c-cornet",
+        "brass.cornet|-2|bb-cornet",
+        "brass.cornet|-3|a-cornet",
+        "brass.saxhorn|-9|saxhorn",
+        "brass.alto-horn|-7|f-alto-horn",
+        "brass.alto-horn|-9|eb-alto-horn",
+        "brass.baritone-horn|0|baritone-horn",
+        "brass.baritone-horn|-14|baritone-horn-treble",
+        "brass.posthorn|0|posthorn",
+        "brass.trumpet.piccolo|10|bb-piccolo-trumpet",
+        "brass.trumpet.piccolo|9|a-piccolo-trumpet",
+        "brass.trumpet|5|f-trumpet",
+        "brass.trumpet|4|e-trumpet",
+        "brass.trumpet|3|eb-trumpet",
+        "brass.trumpet.d|2|d-trumpet",
+        "brass.trumpet.c|0|c-trumpet",
+        "brass.trumpet|-2|trumpet",
+        "brass.trumpet.bflat|-2|bb-trumpet",
+        "brass.trumpet|-3|a-trumpet",
+        "brass.trumpet.pocket|-2|pocket-trumpet",
+        "brass.trumpet.slide|2|slide-trumpet",
+        "brass.trumpet.tenor|-2|tenor-trumpet",
+        "brass.trumpet.bass|-9|eb-bass-trumpet",
+        "brass.trumpet.bass|-12|c-bass-trumpet",
+        "brass.trumpet.bass|-14|bass-trumpet",
+        "brass.trumpet.baroque|5|f-baroque-trumpet",
+        "brass.trumpet.baroque|3|eb-baroque-trumpet",
+        "brass.trumpet.baroque|2|d-baroque-trumpet",
+        "brass.trumpet.baroque|0|c-baroque-trumpet",
+        "brass.trumpet.baroque|-2|bb-baroque-trumpet",
+        "brass.bugle|0|bugle",
+        "brass.bugle.soprano|0|soprano-bugle",
+        "brass.bugle.alto|0|alto-bugle",
+        "brass.mellophone|-7|mellophone",
+        "brass.bugle.baritone|-12|baritone-bugle",
+        "brass.bugle.euphonium-bugle|-12|euphonium-bugle",
+        "brass.bugle.mellophone-bugle|0|mellophon-bugle",
+        "brass.bugle.contrabass|-24|contrabass-bugle",
+        "brass.fiscorn|-2|fiscorn",
+        "brass.flugelhorn|-2|flugelhorn",
+        "brass.kuhlohorn|-2|kuhlohorn",
+        "brass.ophicleide|0|f-alto-ophicleide",
+        "brass.cornettino|0|cornettino",
+        "brass.cornett|0|cornett",
+        "brass.cornett.tenor|0|tenor-cornett",
+        "brass.serpent|0|serpent",
+        "brass.trombone|0|soprano-trombone",
+        "brass.trombone.alto|0|alto-trombone",
+        "brass.trombone.tenor|0|tenor-trombone",
+        "brass.trombone|-14|trombone-treble",
+        "brass.trombone.bass|0|bass-trombone",
+        "brass.trombone.contrabass|0|contrabass-trombone",
+        "brass.cimbasso|0|cimbasso",
+        "brass.sackbutt.alto|0|alto-sackbut",
+        "brass.sackbutt.tenor|0|tenor-sackbut",
+        "brass.sackbutt.bass|0|bass-sackbut",
+        "brass.euphonium|0|euphonium",
+        "brass.euphonium|-14|euphonium-treble",
+        "brass.tuba|0|tuba",
+        "brass.tuba.bass|0|bass-eb-tuba",
+        "brass.tuba|-21|eb-tuba-treble",
+        "brass.tuba|-26|bb-tuba-treble",
+        "brass.tuba.subcontrabass|0|subcontrabass-tuba",
+        "brass.sousaphone|-14|bb-sousaphone",
+        "brass.sousaphone|-26|bb-sousaphone-treble",
+        "brass.sousaphone|0|sousaphone",
+        "brass.helicon|0|helicon",
+        "brass.conch-shell|0|conch",
+        "brass.horagai|0|horagai",
+        "brass.alphorn|0|alphorn",
+        "brass.rag-dung|0|rag-dung",
+        "brass.didgeridoo|0|didgeridoo",
+        "brass.shofar|0|shofar",
+        "brass.vuvuzela|0|vuvuzela",
+        "drum.timpani|0|timpani",
+        "drum.rototom|0|roto-toms",
+        "metal.steel-drums|0|soprano-steel-drums",
+        "pitched-percussion.glockenspiel|24|glockenspiel",
+        "pitched-percussion.xylophone|12|xylophone",
+        "pitched-percussion.xylomarimba|0|xylomarimba",
+        "pitched-percussion.vibraphone|0|vibraphone",
+        "pitched-percussion.hammer-dulcimer|0|dulcimer",
+        "pitched-percussion.cimbalom|0|cimbalom",
+        "pitched-percussion.marimba|0|marimba",
+        "pitched-percussion.marimba.bass|0|bass-marimba",
+        "metal.crotales|24|crotales",
+        "metal.bells.almglocken|0|almglocken",
+        "pitched-percussion.tubular-bells|0|tubular-bells",
+        "metal.bells.carillon|0|carillon",
+        "metal.gong|0|tuned-gongs",
+        "pitched-percussion.handbells|12|hand-bells",
+        "pitched-percussion.glockenspiel.soprano|0|orff-soprano-glockenspiel",
+        "pitched-percussion.glockenspiel.alto|0|orff-alto-glockenspiel",
+        "pitched-percussion.metallophone.soprano|0|orff-soprano-metallophone",
+        "pitched-percussion.xylophone.soprano|0|orff-soprano-xylophone",
+        "pitched-percussion.metallophone|0|metallophone",
+        "pitched-percussion.metallophone.alto|0|orff-alto-metallophone",
+        "pitched-percussion.xylophone.alto|0|orff-alto-xylophone",
+        "pitched-percussion.metallophone.bass|0|orff-bass-metallophone",
+        "metal.flexatone|0|flexatone",
+        "metal.musical-saw|0|musical-saw",
+        "pitched-percussion.crystal-glasses|0|musical-glasses",
+        "pitched-percussion.glass-harmonica|0|glass-harmonica",
+        "pitched-percussion.kalimba|0|alto-kalimba",
+        "metal.brake-drums|0|automobile-brake-drums",
+        "drum.bongo|0|bongos",
+        "drum.group.chinese|0|chinese-tom-toms",
+        "drum.bass-drum|0|bass-drum",
+        "drum.snare-drum|0|snare-drum",
+        "drum.tom-tom|0|tom-toms",
+        "drum.conga|0|congas",
+        "drum.cuica|0|cuica",
+        "drum.group.set|0|drumset",
+        "drum.frame-drum|0|frame-drum",
+        "drum.slit-drum|0|slit-drum",
+        "drum.tabla|0|tablas",
+        "drum.timbale|0|timbales",
+        "drum.taiko|0|taiko",
+        "metal.anvil|0|anvil",
+        "metal.bells.bell-plate|0|bell-plate",
+        "metal.bells.bell-tree|0|bell-tree",
+        "metal.cymbal.chinese|0|chinese-cymbal",
+        "metal.bells.cowbell|0|cowbell",
+        "metal.cymbal.crash|0|crash-cymbal",
+        "metal.cymbal.finger|0|finger-cymbals",
+        "metal.hi-hat|0|hi-hat",
+        "metal.bells.mark-tree|0|mark-tree",
+        "metal.bells.wind-chimes|0|metal-wind-chimes",
+        "metal.cymbal.ride|0|ride-cymbal",
+        "metal.bells.sleigh-bells|0|sleigh-bells",
+        "metal.cymbal.splash|0|splash-cymbal",
+        "metal.tamtam|0|tam-tam",
+        "metal.thundersheet|0|thundersheet",
+        "metal.triangle|0|triangle",
+        "wood.castanets|0|castanets",
+        "wood.claves|0|claves",
+        "wood.guiro|0|guiro",
+        "wood.temple-block|0|temple-blocks",
+        "wood.wood-block|0|wood-blocks",
+        "rattle.cabasa|0|cabasa",
+        "rattle.maraca|0|maracas",
+        "rattle.jawbone|0|quijada",
+        "rattle.ratchet|0|ratchet",
+        "wood.sand-block|0|sandpaper-blocks",
+        "rattle.lava-stones|0|stones",
+        "drum.tambourine|0|tambourine",
+        "rattle.vibraslap|0|vibraslap",
+        "effect.whip|0|whip",
+        "drum.group|0|percussion-synthesizer",
+        "drum.tenor-drum|0|marching-tenor-drums",
+        "effect.snap|0|finger-snap",
+        "effect.hand-clap|0|hand-clap",
+        "effect.slap|0|slap",
+        "effect.stamp|0|stamp",
+        "voice.child|0|boy-soprano",
+        "voice.soprano|0|soprano",
+        "voice.mezzo-soprano|0|mezzo-soprano",
+        "voice.countertenor|0|countertenor",
+        "voice.alto|0|alto",
+        "voice.tenor|0|tenor",
+        "voice.baritone|0|baritone",
+        "voice.vocals|0|voice",
+        "voice.bass|0|bass",
+        "voice.female|0|women",
+        "voice.male|0|men",
+        "voice.kazoo|0|kazoo",
+        "keyboard.celesta|12|celesta",
+        "keyboard.clavichord|0|clavichord",
+        "keyboard.clavichord.synth|0|clavinet",
+        "keyboard.harpsichord|0|harpsichord",
+        "keyboard.virginal|0|virginal",
+        "keyboard.piano.electric|0|electric-piano",
+        "keyboard.piano.grand|0|grand-piano",
+        "keyboard.piano.honky-tonk|0|honky-tonk-piano",
+        "keyboard.piano|0|piano",
+        "keyboard.piano.toy|0|toy-piano",
+        "keyboard.piano.upright|0|upright-piano",
+        "keyboard.organ.drawbar|0|hammond-organ",
+        "keyboard.organ|0|organ",
+        "keyboard.organ.percussive|0|percussive-organ",
+        "keyboard.organ.pipe|0|pipe-organ",
+        "keyboard.organ.rotary|0|rotary-organ",
+        "keyboard.harmonium|0|harmonium",
+        "keyboard.organ.reed|0|reed-organ",
+        "synth.group|0|mallet-synthesizer",
+        "keyboard.ondes-martenot|0|ondes-martenot",
+        "synth.effects.atmosphere|0|atmosphere-synth",
+        "pluck.bass.synth|0|bass-synthesizer",
+        "synth.pad.bowed|0|bowed-synth",
+        "brass.group.synth|0|brass-synthesizer",
+        "synth.effects.brightness|0|brightness-synth",
+        "synth.pad.choir|0|choir-synth",
+        "synth.effects.crystal|0|crystal-synth",
+        "synth.effects.echoes|0|echoes-synth",
+        "synth.effects|0|effect-synth",
+        "synth.effects.goblins|0|goblins-synth",
+        "synth.pad.halo|0|halo-synth",
+        "synth.pad.metallic|0|metallic-synth",
+        "synth.pad|0|new-age-synth",
+        "synth.pad.polysynth|0|poly-synth",
+        "synth.effects.rain|0|rain-synth",
+        "synth.tone.sawtooth|0|saw-synth",
+        "synth.effects.sci-fi|0|sci-fi-synth",
+        "synth.tone.sine|0|sine-synth",
+        "synth.effects.soundtrack|0|soundtrack-synth",
+        "strings.group.synth|0|string-synthesizer",
+        "synth.pad.warm|0|sweep-synth",
+        "synth.theremin|0|theremin",
+        "pluck.harp|0|harp",
+        "pluck.guitar|0|cavaquinho",
+        "pluck.guitar.electric|0|electric-guitar",
+        "pluck.guitar.electric|-12|electric-guitar-treble-clef",
+        "pluck.guitar.acoustic|0|guitar-steel",
+        "pluck.guitar.acoustic|-12|guitar-steel-treble-clef",
+        "pluck.guitar.nylon-string|0|guitar-nylon",
+        "pluck.guitar.nylon-string|-12|guitar-nylon-treble-clef",
+        "pluck.guitar.pedal-steel|0|pedal-steel-guitar",
+        "pluck.bass.electric|-12|5-string-electric-bass",
+        "pluck.bass|-12|bass-guitar",
+        "pluck.bass.fretless|-12|fretless-electric-bass",
+        "pluck.bass.acoustic|-12|acoustic-bass",
+        "pluck.bass|0|bass-guitar-tablature",
+        "pluck.bass.electric|0|electric-bass-4-str-tab",
+        "pluck.banjo|0|banjo",
+        "pluck.banjo.tenor|0|tenor-banjo",
+        "pluck.ukulele.tenor|0|tenor-ukulele",
+        "pluck.ukulele|0|ukulele",
+        "pluck.mandolin|0|mandolin",
+        "pluck.mandola|0|alto-mandola",
+        "pluck.mandolin.octave|0|octave-mandolin",
+        "pluck.mandocello|0|mandocello",
+        "pluck.dulcimer|0|mtn-dulcimer-std",
+        "pluck.lute|0|lute",
+        "pluck.theorbo|0|theorbo-14-course",
+        "pluck.archlute|0|archlute-14-course",
+        "pluck.balalaika.piccolo|0|balalaika-piccolo",
+        "pluck.balalaika|0|balalaika",
+        "pluck.balalaika.prima|0|balalaika-prima",
+        "pluck.balalaika.secunda|0|balalaika-secunda",
+        "pluck.balalaika.alto|0|balalaika-alto",
+        "pluck.balalaika.bass|0|balalaika-bass",
+        "pluck.balalaika.contrabass|0|balalaika-contrabass",
+        "pluck.bouzouki|0|bouzouki-3-course",
+        "pluck.koto|0|koto",
+        "pluck.oud|-12|oud",
+        "pluck.shamisen|0|shamisen",
+        "pluck.sitar|0|sitar",
+        "pluck.tambura|12|prim",
+        "pluck.tambura|0|brac",
+        "pluck.tambura|-12|bugarija",
+        "pluck.tambura|-24|celo",
+        "pluck.bandurria|0|bandurria",
+        "pluck.laud|0|laud",
+        "strings.group|0|strings",
+        "strings.violin|0|violin",
+        "strings.viola|0|viola",
+        "strings.cello|0|violoncello",
+        "strings.contrabass|-12|contrabass",
+        "strings.group|-12|contrabasses",
+        "strings.viol.treble|0|treble-viol",
+        "strings.viol.alto|0|alto-viol",
+        "strings.viol|0|pardessus-de-viole",
+        "strings.viol.tenor|0|tenor-viol",
+        "strings.baryton|0|baryton",
+        "strings.viol.violone|0|violone",
+        "strings.octobass|-24|octobass",
+        "strings.erhu|0|erhu",
+        "strings.nyckelharpa|0|nyckelharpa"};
+
+    private static final Map<String, String> BY_SOUND_AND_TRANSPOSITION = new HashMap<>();
+    private static final Map<String, String> BY_SOUND = new HashMap<>();
+
+    static {
+        for (String instrument : INSTRUMENTS) {
+            String[] fields = instrument.split(FIELD_SEPARATOR);
+            BY_SOUND_AND_TRANSPOSITION.putIfAbsent(fields[SOUND] + KEY_SEPARATOR + fields[CHROMATIC], fields[ID]);
+            BY_SOUND.putIfAbsent(fields[SOUND], fields[ID]);
+        }
+    }
+
+
+    /**
+     * Private class, the only instance of the singelton which will be created by accessing the holder class.
+     *
+     * @author patrick
+     */
+    private static final class HOLDER {
+        static final MuseScoreInstrumentConverter INSTANCE = new MuseScoreInstrumentConverter();
+    }
+
+
+    /**
+     * Constructor.
+     */
+    private MuseScoreInstrumentConverter() {
+        // singleton
+    }
+
+
+    /**
+     * Get the instance.
+     *
+     * @return the instance
+     */
+    public static MuseScoreInstrumentConverter getInstance() {
+        return HOLDER.INSTANCE;
+    }
+
+
+    /**
+     * Gets the MuseScore instrument of a sound: the instrument with the same sound and transposition, otherwise the
+     * first instrument with the sound. A sound without instrument (for example brass.trumpet.piccolo) gets the
+     * instrument of its general sound (brass.trumpet).
+     *
+     * @param sound the MusicXML instrument sound, or null
+     * @param chromatic the transposition from written to sounding pitch in semitones (for example -2 for B flat)
+     * @return the MuseScore instrument, or null if the sound has none
+     */
+    public String getInstrument(String sound, int chromatic) {
+        String name = sound;
+        while (name != null && !name.isEmpty()) {
+            String result = BY_SOUND_AND_TRANSPOSITION.get(name + KEY_SEPARATOR + chromatic);
+            if (result == null) {
+                result = BY_SOUND.get(name);
+            }
+            if (result != null) {
+                return result;
+            }
+            int dot = name.lastIndexOf(SEPARATOR);
+            if (dot < 0) {
+                return null;
+            }
+            name = name.substring(0, dot);
+        }
+        return null;
+    }
+}

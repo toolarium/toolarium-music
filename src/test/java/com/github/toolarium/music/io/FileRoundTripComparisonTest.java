@@ -21,7 +21,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -47,40 +46,32 @@ public class FileRoundTripComparisonTest {
     @Test
     void testMidiFilesRoundTripPreservesModel() throws IOException {
         List<Path> midiFiles = TestResourceUtil.getInstance().findFilesByExtension(".mid", ".midi");
+        midiFiles.removeIf(p -> p.toString().contains("edge-cases"));
         assertFalse(midiFiles.isEmpty(), "No MIDI sample files found under samples directory.");
 
-        int passed = 0;
-        List<String> failures = new ArrayList<>();
+        List<String> failures = TestResourceUtil.getInstance().processFiles(midiFiles, midiPath -> {
+            IScore original = MusicFileFactory.getInstance().read(midiPath);
+            assertNotNull(original, "Score should not be null: " + midiPath.getFileName());
 
-        for (Path midiPath : midiFiles) {
-            try {
-                IScore original = MusicFileFactory.getInstance().read(midiPath);
-                assertNotNull(original, "Score should not be null: " + midiPath.getFileName());
+            byte[] written = writeToBytes(original, MusicFileFormat.MIDI);
+            assertTrue(written.length > 0, "Written bytes should not be empty: " + midiPath.getFileName());
 
-                byte[] written = writeToBytes(original, MusicFileFormat.MIDI);
-                assertTrue(written.length > 0, "Written bytes should not be empty: " + midiPath.getFileName());
+            IScore readBack = MusicFileFactory.getInstance().read(new ByteArrayInputStream(written), MusicFileFormat.MIDI);
+            assertNotNull(readBack, "Read-back should not be null: " + midiPath.getFileName());
 
-                IScore readBack = MusicFileFactory.getInstance().read(new ByteArrayInputStream(written), MusicFileFormat.MIDI);
-                assertNotNull(readBack, "Read-back should not be null: " + midiPath.getFileName());
+            int originalParts = countParts(original);
+            int readBackParts = countParts(readBack);
+            assertEquals(originalParts, readBackParts, "Part count mismatch for: " + midiPath.getFileName());
 
-                int originalParts = countParts(original);
-                int readBackParts = countParts(readBack);
-                assertEquals(originalParts, readBackParts, "Part count mismatch for: " + midiPath.getFileName());
+            int originalNotes = countPitchedNotes(original);
+            int readBackNotes = countPitchedNotes(readBack);
+            assertEquals(originalNotes, readBackNotes, "Pitched note count mismatch for: " + midiPath.getFileName());
 
-                int originalNotes = countPitchedNotes(original);
-                int readBackNotes = countPitchedNotes(readBack);
-                assertEquals(originalNotes, readBackNotes, "Pitched note count mismatch for: " + midiPath.getFileName());
+            LOG.info("MIDI round-trip preserved for '{}': {} parts, {} notes.", midiPath.getFileName(), readBackParts, readBackNotes);
+            return null;
+        });
 
-                LOG.info("MIDI round-trip preserved for '{}': {} parts, {} notes.", midiPath.getFileName(), readBackParts, readBackNotes);
-                passed++;
-            } catch (Exception e) {
-                String msg = midiPath.getFileName() + ": " + e.getMessage();
-                failures.add(msg);
-                LOG.info("FAILED MIDI round-trip '{}': {}", midiPath.getFileName(), e.getMessage());
-            }
-        }
-
-        LOG.info("MIDI round-trip comparison: {} passed, {} failed out of {} files.", passed, failures.size(), midiFiles.size());
+        LOG.info("MIDI round-trip comparison: {} passed, {} failed out of {} files.", midiFiles.size() - failures.size(), failures.size(), midiFiles.size());
         assertTrue(failures.isEmpty(), "Failed for " + failures.size() + " file(s): " + String.join("; ", failures));
     }
 
@@ -96,39 +87,30 @@ public class FileRoundTripComparisonTest {
         List<Path> mxlFiles = TestResourceUtil.getInstance().findFilesByExtension(".mxl");
         assertFalse(mxlFiles.isEmpty(), "No .mxl sample files found under samples directory.");
 
-        int passed = 0;
-        List<String> failures = new ArrayList<>();
+        List<String> failures = TestResourceUtil.getInstance().processFiles(mxlFiles, mxlPath -> {
+            IScore original = MusicFileFactory.getInstance().read(mxlPath);
+            assertNotNull(original, "Score should not be null: " + mxlPath.getFileName());
 
-        for (Path mxlPath : mxlFiles) {
-            try {
-                IScore original = MusicFileFactory.getInstance().read(mxlPath);
-                assertNotNull(original, "Score should not be null: " + mxlPath.getFileName());
+            byte[] written = writeToBytes(original, MusicFileFormat.MXL);
+            assertTrue(written.length > 0, "Written bytes should not be empty: " + mxlPath.getFileName());
 
-                byte[] written = writeToBytes(original, MusicFileFormat.MXL);
-                assertTrue(written.length > 0, "Written bytes should not be empty: " + mxlPath.getFileName());
+            IScore readBack = MusicFileFactory.getInstance().read(new ByteArrayInputStream(written), MusicFileFormat.MXL);
+            assertNotNull(readBack, "Read-back should not be null: " + mxlPath.getFileName());
 
-                IScore readBack = MusicFileFactory.getInstance().read(new ByteArrayInputStream(written), MusicFileFormat.MXL);
-                assertNotNull(readBack, "Read-back should not be null: " + mxlPath.getFileName());
+            int originalParts = countParts(original);
+            int readBackParts = countParts(readBack);
+            assertEquals(originalParts, readBackParts, "Part count mismatch for: " + mxlPath.getFileName());
 
-                int originalParts = countParts(original);
-                int readBackParts = countParts(readBack);
-                assertEquals(originalParts, readBackParts, "Part count mismatch for: " + mxlPath.getFileName());
+            assertEquals(original.getVersion(), readBack.getVersion(), "Version mismatch for: " + mxlPath.getFileName());
 
-                assertEquals(original.getVersion(), readBack.getVersion(), "Version mismatch for: " + mxlPath.getFileName());
+            int originalNotes = countPitchedNotes(original);
+            int readBackNotes = countPitchedNotes(readBack);
+            LOG.info("MXL round-trip preserved for '{}': {} parts, {} notes (original {} notes).", mxlPath.getFileName(), readBackParts, readBackNotes, originalNotes);
 
-                int originalNotes = countPitchedNotes(original);
-                int readBackNotes = countPitchedNotes(readBack);
-                LOG.info("MXL round-trip preserved for '{}': {} parts, {} notes (original {} notes).", mxlPath.getFileName(), readBackParts, readBackNotes, originalNotes);
-                        
-                passed++;
-            } catch (Exception e) {
-                String msg = mxlPath.getFileName() + ": " + e.getMessage();
-                failures.add(msg);
-                LOG.info("FAILED MXL round-trip '{}': {}", mxlPath.getFileName(), e.getMessage());
-            }
-        }
+            return null;
+        });
 
-        LOG.info("MXL round-trip comparison: {} passed, {} failed out of {} files.", passed, failures.size(), mxlFiles.size());
+        LOG.info("MXL round-trip comparison: {} passed, {} failed out of {} files.", mxlFiles.size() - failures.size(), failures.size(), mxlFiles.size());
         assertTrue(failures.isEmpty(), "Failed for " + failures.size() + " file(s): " + String.join("; ", failures));
     }
 

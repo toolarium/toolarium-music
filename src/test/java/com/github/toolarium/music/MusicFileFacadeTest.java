@@ -37,7 +37,7 @@ public class MusicFileFacadeTest {
      */
     @Test
     void testReadMusicXmlViaFactory() throws IOException {
-        Path sampleFile = SAMPLES_DIR.resolve("sample-score-partwise.musicxml");
+        Path sampleFile = SAMPLES_DIR.resolve("musicxml/sample-score-partwise.musicxml");
         assertTrue(Files.exists(sampleFile), "Sample file not found under samples directory: sample-score-partwise.musicxml");
 
         IScore score = MusicFileFactory.getInstance().read(sampleFile);

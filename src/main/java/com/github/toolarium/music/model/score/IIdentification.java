@@ -46,4 +46,12 @@ public interface IIdentification {
      * @return the source
      */
     String getSource();
+
+
+    /**
+     * Gets the miscellaneous fields: named values without an own element, for example the creation date.
+     *
+     * @return the miscellaneous fields, or null if there are none
+     */
+    List<? extends IMiscellaneousField> getMiscellaneous();
 }

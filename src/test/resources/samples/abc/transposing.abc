@@ -1,0 +1,16 @@
+X:1
+T:Transposing
+C:toolarium
+N:a tenor saxophone with the chord symbols in a hidden voice
+M:C
+L:1/8
+%%writefields TC
+%%MIDI transpose -14
+%%staves (melody chords)
+K:Dm
+V:melody
+%%MIDI program 67
+D2F2 A2d2 | B2G2 E2^C2 | D2F2 E2A,2 | D8 |]
+V:chords
+%%MIDI program 1
+"Dm"x4 "Dm7"x4 | "Gm"x4 "A7"x4 | "Dm"x4 "A7"x4 | "Dm"x8 |]

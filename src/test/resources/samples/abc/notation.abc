@@ -1,0 +1,19 @@
+X:1
+T:Notation                % title
+C:toolarium               % composer
+O:Switzerland             % origin
+S:toolarium tests         % source
+N:bar lines, accidentals, tuplets and unit note lengths
+R:march                   % rhythm
+M:C                       % common time
+L:1/16                    % unit note length
+Q:1/4=100
+K:C                       % key
+% a comment line in the tune
+[| C4 D4 E4 F4 | G16 ||
+L:1/8
+|: __A2 _A2 =A2 ^A2 | ^^A2 A2 A4 :: (2AB (3ABA (4ABAB | (5ABABA (3:2:3ABA A4 :|
+L:1/4
+"^slow" A B c d | (6A/A/A/A/A/A/ (7A/A/A/A/A/A/A/ z2 |]
+W:words after the tune
+W:a second line of words

@@ -45,6 +45,9 @@ public class SoundImpl implements ISound, IMusicDataElement {
     @JacksonXmlProperty(isAttribute = true, localName = "forward-repeat")
     private String forwardRepeat;
 
+    @JacksonXmlProperty(localName = "offset")
+    private Integer offset;
+
 
     /**
      * Gets the tempo.
@@ -236,6 +239,27 @@ public class SoundImpl implements ISound, IMusicDataElement {
 
 
     /**
+     * Gets the offset: the time from the current position of the score to the sound, in divisions.
+     *
+     * @return the offset, or null if the sound takes place at the current position
+     */
+    @Override
+    public Integer getOffset() {
+        return offset;
+    }
+
+
+    /**
+     * Sets the offset.
+     *
+     * @param offset the time from the current position of the score to the sound, in divisions
+     */
+    public void setOffset(Integer offset) {
+        this.offset = offset;
+    }
+
+
+    /**
      * Returns a hash code value for this object.
      *
      * @return a hash code value
@@ -243,7 +267,7 @@ public class SoundImpl implements ISound, IMusicDataElement {
     @Override
     public int hashCode() {
         return Objects.hash(tempo, dynamics, dacapo, segno, dalsegno,
-                coda, tocoda, fine, forwardRepeat);
+                coda, tocoda, fine, forwardRepeat, offset);
     }
 
 
@@ -270,7 +294,8 @@ public class SoundImpl implements ISound, IMusicDataElement {
                 && Objects.equals(coda, other.coda)
                 && Objects.equals(tocoda, other.tocoda)
                 && Objects.equals(fine, other.fine)
-                && Objects.equals(forwardRepeat, other.forwardRepeat);
+                && Objects.equals(forwardRepeat, other.forwardRepeat)
+                && Objects.equals(offset, other.offset);
     }
 
 
@@ -289,6 +314,7 @@ public class SoundImpl implements ISound, IMusicDataElement {
                 + ", coda=" + coda
                 + ", tocoda=" + tocoda
                 + ", fine=" + fine
-                + ", forwardRepeat=" + forwardRepeat + "]";
+                + ", forwardRepeat=" + forwardRepeat
+                + ", offset=" + offset + "]";
     }
 }

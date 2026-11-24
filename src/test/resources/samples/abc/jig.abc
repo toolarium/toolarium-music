@@ -1,0 +1,11 @@
+%abc-2.1
+X:1
+T:The Test Jig
+R:jig
+C:toolarium
+M:6/8
+L:1/8
+Q:3/8=120
+K:G
+|:D|"G"GAB "D"AGE|"G"GBd "C"e2d|"G"gfe "D"dBA|"G"BGG G2:|
+|:d|"G"g2g "D"fga|"Em"gfe "D"d2B|"C"cec "G"BdB|1"D"AGF "G"G2:|2"D"AGF G3|]

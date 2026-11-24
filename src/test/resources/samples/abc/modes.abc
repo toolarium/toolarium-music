@@ -1,0 +1,33 @@
+X:1
+T:Modes
+C:toolarium
+M:4/4
+L:1/8
+K:C
+CDEF GABc |
+K:Cmajor
+cBAG FEDC |
+K:C maj
+CEGc G2E2 |
+K:D dorian
+DEFG ABcd |
+K:E phrygian
+EFGA Bcde |
+K:F lydian
+FGAB cdef |
+K:G mixolydian
+GABc defg |
+K:A aeolian
+ABcd efga |
+K:B locrian
+Bcde fgab |
+K:C ionian
+c8 |
+K:Am
+A,CEA E2C2 |
+K:A minor
+A,B,CD E2A2 |
+K:C bass
+C,D,E,F, G,A,B,C |
+K:C treble
+C8 |]

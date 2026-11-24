@@ -6,6 +6,7 @@
 
 package com.github.toolarium.music.model.score;
 
+import com.github.toolarium.music.model.layout.IPageLayout;
 
 /**
  * Defines the Defaults interface.
@@ -20,4 +21,12 @@ public interface IDefaults {
      * @return the scaling
      */
     IScaling getScaling();
+
+
+    /**
+     * Gets the page layout: the page size and margins.
+     *
+     * @return the page layout, or null
+     */
+    IPageLayout getPageLayout();
 }

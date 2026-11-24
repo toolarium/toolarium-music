@@ -47,6 +47,30 @@ public interface ICreditWords {
 
 
     /**
+     * Gets the font-family attribute.
+     *
+     * @return the font-family attribute
+     */
+    String getFontFamily();
+
+
+    /**
+     * Gets the font-weight attribute.
+     *
+     * @return the font-weight attribute
+     */
+    String getFontWeight();
+
+
+    /**
+     * Gets the font-style attribute.
+     *
+     * @return the font-style attribute
+     */
+    String getFontStyle();
+
+
+    /**
      * Gets the justify attribute.
      *
      * @return the justify attribute

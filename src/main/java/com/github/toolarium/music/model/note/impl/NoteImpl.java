@@ -6,6 +6,8 @@
 
 package com.github.toolarium.music.model.note.impl;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.github.toolarium.music.model.common.IMusicDataElement;
@@ -20,7 +22,15 @@ import java.util.Objects;
  *
  * @author patrick
  */
+@JsonAutoDetect(getterVisibility = Visibility.NONE, isGetterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE)
 public class NoteImpl implements INote, IMusicDataElement {
+
+    // the fields are written in their order, which is the element order of MusicXML
+    @JacksonXmlProperty(localName = "grace")
+    private GraceImpl grace;
+
+    @JacksonXmlProperty(localName = "chord")
+    private String chord;
 
     @JacksonXmlProperty(localName = "pitch")
     private PitchImpl pitch;
@@ -30,9 +40,6 @@ public class NoteImpl implements INote, IMusicDataElement {
 
     @JacksonXmlProperty(localName = "unpitched")
     private UnpitchedImpl unpitched;
-
-    @JacksonXmlProperty(localName = "chord")
-    private String chord;
 
     @JacksonXmlProperty(localName = "duration")
     private Integer duration;
@@ -45,7 +52,7 @@ public class NoteImpl implements INote, IMusicDataElement {
     private Integer voice;
 
     @JacksonXmlProperty(localName = "type")
-    private String type;
+    private NoteTypeImpl type;
 
     @JacksonXmlElementWrapper(useWrapping = false)
     @JacksonXmlProperty(localName = "dot")
@@ -95,6 +102,27 @@ public class NoteImpl implements INote, IMusicDataElement {
         this.dots = new ArrayList<>();
         this.beams = new ArrayList<>();
         this.lyrics = new ArrayList<>();
+    }
+
+
+    /**
+     * Gets the grace note information.
+     *
+     * @return the grace information, or null if this is not a grace note
+     */
+    @Override
+    public GraceImpl getGrace() {
+        return grace;
+    }
+
+
+    /**
+     * Sets the grace note information.
+     *
+     * @param grace the grace information, or null if this is not a grace note
+     */
+    public void setGrace(GraceImpl grace) {
+        this.grace = grace;
     }
 
 
@@ -252,7 +280,10 @@ public class NoteImpl implements INote, IMusicDataElement {
      */
     @Override
     public String getType() {
-        return type;
+        if (type == null) {
+            return null;
+        }
+        return type.getValue();
     }
 
 
@@ -262,7 +293,35 @@ public class NoteImpl implements INote, IMusicDataElement {
      * @param type the type
      */
     public void setType(String type) {
-        this.type = type;
+        if (type == null) {
+            this.type = null;
+        } else {
+            this.type = new NoteTypeImpl(type, getTypeSize());
+        }
+    }
+
+
+    /**
+     * Gets the size of the note type.
+     *
+     * @return the size (full, cue, grace-cue or large), or null for the normal size
+     */
+    @Override
+    public String getTypeSize() {
+        if (type == null) {
+            return null;
+        }
+        return type.getSize();
+    }
+
+
+    /**
+     * Sets the size of the note type. The size is kept only together with a note type.
+     *
+     * @param typeSize the size (full, cue, grace-cue or large), or null for the normal size
+     */
+    public void setTypeSize(String typeSize) {
+        this.type = new NoteTypeImpl(getType(), typeSize);
     }
 
 
@@ -525,7 +584,7 @@ public class NoteImpl implements INote, IMusicDataElement {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(pitch, rest, unpitched, chord, duration, ties, voice, type,
+        return Objects.hash(grace, pitch, rest, unpitched, chord, duration, ties, voice, type,
                 dots, accidental, timeModification, stem, notehead, staff, beams,
                 notations, lyrics, defaultX, defaultY, printObject);
     }
@@ -546,7 +605,8 @@ public class NoteImpl implements INote, IMusicDataElement {
             return false;
         }
         NoteImpl other = (NoteImpl) obj;
-        return Objects.equals(pitch, other.pitch)
+        return Objects.equals(grace, other.grace)
+                && Objects.equals(pitch, other.pitch)
                 && Objects.equals(rest, other.rest)
                 && Objects.equals(unpitched, other.unpitched)
                 && Objects.equals(chord, other.chord)
@@ -576,7 +636,7 @@ public class NoteImpl implements INote, IMusicDataElement {
      */
     @Override
     public String toString() {
-        return "NoteImpl [pitch=" + pitch + ", rest=" + rest + ", unpitched=" + unpitched
+        return "NoteImpl [grace=" + grace + ", pitch=" + pitch + ", rest=" + rest + ", unpitched=" + unpitched
                 + ", chord=" + chord + ", duration=" + duration + ", ties=" + ties
                 + ", voice=" + voice + ", type=" + type + ", dots=" + dots
                 + ", accidental=" + accidental + ", timeModification=" + timeModification

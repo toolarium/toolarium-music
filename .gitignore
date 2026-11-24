@@ -72,7 +72,7 @@ nb-configuration.xml
 CLAUDE.md
 
 # Test sample data
-src/test/resources/samples/quintet/
+src/test/resources/samples/_protected_/
 
 # Disallowed checked-in files (auto-cleaned by common-gradle-build)
 .classpath

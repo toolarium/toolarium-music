@@ -6,6 +6,7 @@
 
 package com.github.toolarium.music.model.score;
 
+import java.util.List;
 
 /**
  * Defines the Credit interface.
@@ -31,9 +32,17 @@ public interface ICredit {
 
 
     /**
-     * Gets the credit words.
+     * Gets the first credit words: the words with the position of the credit.
      *
-     * @return the credit words
+     * @return the first credit words, or null if there are none
      */
     ICreditWords getCreditWords();
+
+
+    /**
+     * Gets all credit words: the words after the first one continue its text with their own font.
+     *
+     * @return the credit words, or null if there are none
+     */
+    List<? extends ICreditWords> getCreditWordsList();
 }
